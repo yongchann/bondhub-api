@@ -12,7 +12,7 @@ import java.util.Set;
 @Builder
 @Getter
 @Entity
-public class Bond extends BaseTimeEntity {
+public class Bond {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,8 +23,5 @@ public class Bond extends BaseTimeEntity {
     private BondType type;
 
     private String primaryName;
-
-    @OneToMany(mappedBy = "bond", fetch = FetchType.LAZY)
-    private Set<BondAlias> aliases = new HashSet<>();
 
 }

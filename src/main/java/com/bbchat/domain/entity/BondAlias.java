@@ -8,7 +8,7 @@ import lombok.*;
 @Builder
 @Getter
 @Entity
-public class BondAlias extends BaseTimeEntity {
+public class BondAlias {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

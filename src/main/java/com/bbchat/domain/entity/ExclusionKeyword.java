@@ -8,7 +8,7 @@ import lombok.*;
 @Builder
 @Getter
 @Entity
-public class ExclusionKeyword extends BaseTimeEntity{
+public class ExclusionKeyword {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

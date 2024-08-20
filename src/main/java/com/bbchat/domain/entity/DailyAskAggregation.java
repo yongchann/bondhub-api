@@ -3,8 +3,6 @@ package com.bbchat.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -17,7 +15,7 @@ public class DailyAskAggregation extends BaseTimeEntity {
     @Column(name = "daily_ask_aggregation_id")
     private Long id;
 
-    private LocalDate date;
+    private String date;
 
     private String filename;
 

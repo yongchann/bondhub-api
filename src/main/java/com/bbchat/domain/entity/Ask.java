@@ -3,14 +3,12 @@ package com.bbchat.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 @Getter
 @Entity
-public class AskRecord extends BaseTimeEntity {
+public class Ask extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,14 +21,8 @@ public class AskRecord extends BaseTimeEntity {
 
     private String triggerTerm;
 
-    private LocalDate dueDate;
-
-    private String senderName;
-
-    private String sendDateTime;
+    private String dueDate;
 
     private String originalContent;
-
-    private String senderAddress;
 
 }
