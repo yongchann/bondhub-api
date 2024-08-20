@@ -20,7 +20,7 @@ public class UploadController {
     @PostMapping("/api/v1/upload/chat")
     public ResponseEntity<?> uploadChatFile(@RequestParam("date") String date, @RequestParam("file") MultipartFile file) {
         try {
-            fileRepository.saveChatFile(date, file.getInputStream());
+            fileRepository.saveChatFile(date+"/ORIGINAL", file.getInputStream());
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

@@ -26,7 +26,7 @@ public class S3FileRepository {
     }
 
     public FileInfo getChatFileByDate(String date) {
-        S3Object object = s3Client.getObject(BUCKET_NAME, CHAT_FILE_KEY_PREFIX+date);
+        S3Object object = s3Client.getObject(BUCKET_NAME, CHAT_FILE_KEY_PREFIX+date+"/ORIGINAL");
 
         long size = object.getObjectMetadata().getContentLength();
         String contentType = object.getObjectMetadata().getContentType();
