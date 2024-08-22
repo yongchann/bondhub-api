@@ -1,10 +1,11 @@
 package com.bbchat.domain;
 
 public enum BondType {
-    PUB("공사채"),
+    PUBLIC("공사채"),
     BANK("은행채"),
-    FIN("여전채"),
-    COMP("회사채");
+    SPECIALIZED_CREDIT("여전채"),
+    COMPANY("회사채"),
+    UNCATEGORIZED("미분류");
 
     BondType(String name) {
     }
