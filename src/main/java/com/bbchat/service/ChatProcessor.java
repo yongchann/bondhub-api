@@ -2,154 +2,123 @@ package com.bbchat.service;
 
 import com.bbchat.domain.Chat;
 import com.bbchat.domain.ChatValidityType;
-import com.bbchat.domain.ClassificationData;
 import com.bbchat.domain.entity.Ask;
-import com.bbchat.support.ChatStreamConverter;
+import com.bbchat.domain.entity.Bond;
+import com.bbchat.support.FileInfo;
 import com.bbchat.support.S3FileRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Component
 public class ChatProcessor {
 
-    private static final String CHAT_MESSAGE_SEARCH_PATTERN = "([A-Za-z\\.가-힣0-9 女]+) \\((\\d{2}:\\d{2}:\\d{2})\\) :\\s*(.*?)(?=(?:[A-Z0-9a-z\\.가-힣 女]+\\s\\(\\d{2}:\\d{2}:\\d{2}\\)|$))";
-    private static final String SENDER_ADDRESS_PATTERN = "\\s*\\([^)]*\\)\\s*$|\\s*\\[[^]]*\\]\\s*$|\\s*\\{[^}]*\\}\\s*$|\\s*<[^>]*>\\s*$";
-    private static final String VALID_DUE_DATE_PATTERN = "\\d{2}[./-]\\d{1,2}[./-]\\d{1,2}";
-
     private final S3FileRepository s3FileRepository;
-    private final ClassificationData classificationData;
-    private final ChatStreamConverter converter;
+    private final ObjectMapper objectMapper;
+    private final ChatParser chatParser;
+    private final ChatProcessingRules data;
 
-    public List<Ask> process(String date, String rawText) {
-        Pattern pattern = Pattern.compile(CHAT_MESSAGE_SEARCH_PATTERN);
-        Matcher matcher = pattern.matcher(cleanRawText(rawText));
+    public List<Ask> process(String date) {
+        FileInfo chatFile = s3FileRepository.getChatFileByDate(date);
 
-        // 채팅 메시지 객체화
-        List<Chat> allChats = new ArrayList<>();
-        while (matcher.find()) {
-            String senderName = matcher.group(1).trim();
-            String sendDateTime = matcher.group(2);
-            String content = matcher.group(3);
-            String senderAddress = extractSenderAddress(content).trim();
-            content = content.replace(senderAddress, "").trim();
+        List<Chat> allChats = chatParser.parseChatsFromRawText(preprocess(chatFile.getContent()));
+        List<Chat> filteredAskChats = filterChats(allChats);
 
-            allChats.add(new Chat(senderName, sendDateTime, null, content, senderAddress));
-        }
-
-        // 필터링
-        List<Chat> askChats = allChats.stream()
-                .filter(chat -> isSellingMessage(chat.getContent())) // 매도 호가만
-                .filter(chat -> isTargetMessage(chat.getContent())) // 제외 키워드
-                .toList();
-
-        // 만기 포함 갯수에 따른 분류
-        Map<ChatValidityType, List<Chat>> chatsByValidity = askChats.stream().collect(Collectors.groupingBy(chat -> {
-            List<String> dates = extractDueDates(chat.getContent());
-            if (dates.isEmpty()) {
-                return ChatValidityType.INVALID;
-            } else if (dates.size() > 1) {
-                return ChatValidityType.VALID_MULTI_DUE_DATE;
-            }
-            chat.setDueDate(parseDueDate(dates.get(0)));
-            return ChatValidityType.VALID_SINGLE_DUE_DATE;
-        }));
-
-
-        // 키워드 포함에 따른 종목 분류
-        List<Chat> invalidChats = chatsByValidity.get(ChatValidityType.INVALID);
-        try {
-            s3FileRepository.saveChatFile(date+"/"+ChatValidityType.INVALID, converter.convertListToInputStream(invalidChats));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        List<Chat> probablyValidChats = chatsByValidity.get(ChatValidityType.VALID_MULTI_DUE_DATE);
-        try {
-            s3FileRepository.saveChatFile(date+"/"+ChatValidityType.VALID_MULTI_DUE_DATE, converter.convertListToInputStream(probablyValidChats));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        List<Chat> validChats = chatsByValidity.get(ChatValidityType.VALID_SINGLE_DUE_DATE);
-        try {
-            s3FileRepository.saveChatFile(date+"/"+ChatValidityType.VALID_SINGLE_DUE_DATE, converter.convertListToInputStream(validChats));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        List<Ask> asks = new ArrayList<>();
-        validChats.forEach(chat -> {
-            for (String key : classificationData.getBondAliasMap().keySet()) {
-                if (chat.getContent().contains(key)) {
-                    Ask ask = Ask.builder()
-                            .bond(classificationData.getBondAliasMap().get(key))
-                            .triggerTerm(key)
-                            .dueDate(chat.getDueDate())
-                            .originalContent(chat.getContent())
-                            .build();
-                    asks.add(ask);
-                    break; // Stop once the first matching key is found
-                }
-            }
+        Map<ChatValidityType, List<Chat>> chatsByValidity = classifyByDueDateCount(filteredAskChats);
+        chatsByValidity.forEach((validityType, chats) -> {
+            String fileName = String.format("%s/%s.json", date, validityType);
+            saveChats(fileName, chats);
         });
 
-        return asks;
+        return extractAsksFromChats(chatsByValidity.get(ChatValidityType.VALID_SINGLE_DUE_DATE));
     }
 
-    private String cleanRawText(String rawText) {
-        rawText = rawText.replace("\r\n", " ");
-        rawText = rawText.replace("\n", " ");
-        rawText = rawText.replace("[부국채영]368-9532", "([부국채영]368-9532])");
-        rawText = rawText.replace("김성훈(부국)", "김성훈");
-        return rawText;
-    }
-
-    private String extractSenderAddress(String content) {
-        Pattern pattern = Pattern.compile(SENDER_ADDRESS_PATTERN);
-        Matcher matcher = pattern.matcher(content);
-
-        if (matcher.find()) {
-            return matcher.group(0).trim();
-        }
-        return "";
+    private List<Chat> filterChats(List<Chat> chats) {
+        return chats.stream()
+                .filter(chat -> isSellingMessage(chat.getContent()))
+                .filter(chat -> isAllowedMessage(chat.getContent()))
+                .collect(Collectors.toList());
     }
 
     private boolean isSellingMessage(String content) {
-        return content.contains("팔자");
+        List<String> askKeywords = data.getAskKeywords();
+        return askKeywords.stream().anyMatch(content::contains);
     }
 
-    private boolean isTargetMessage(String content) {
-        return classificationData.getExclusionKeywords().stream()
-                .noneMatch(content::contains);
+    private boolean isAllowedMessage(String content) {
+        List<String> exclusionKeywords = data.getExclusionKeywords();
+        return exclusionKeywords.stream().noneMatch(content::contains);
     }
 
-    private List<String> extractDueDates(String content) {
-        Pattern pattern = Pattern.compile(VALID_DUE_DATE_PATTERN);
-        Matcher matcher = pattern.matcher(content);
-        List<String> dates = new ArrayList<>();
-        while (matcher.find()) {
-            dates.add(matcher.group());
-        }
-        return dates;
+    private Map<ChatValidityType, List<Chat>> classifyByDueDateCount(List<Chat> chats) {
+        return chats.stream().collect(Collectors.groupingBy(chat -> {
+            List<String> extractedDates = chatParser.extractDueDates(chat.getContent());
+
+            if (extractedDates.isEmpty()) {
+                return ChatValidityType.INVALID;
+            } else if (extractedDates.size() > 1) {
+                return ChatValidityType.VALID_MULTI_DUE_DATE;
+            }
+
+            chat.setDueDate(extractedDates.get(0));
+            return ChatValidityType.VALID_SINGLE_DUE_DATE;
+        }));
     }
 
-    private String parseDueDate(String date) {
-        date = date.replace('.', '-').replace('/', '-');
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy-MM-dd");
+    private List<Ask> extractAsksFromChats(List<Chat> validChats) {
+        Set<Ask> asks = new HashSet<>();
+        Map<String, Bond> aliasToBondMap = data.getAliasToBondMap();
+
+        validChats.forEach(chat -> aliasToBondMap.forEach((key, bond) -> {
+            if (chat.getContent().contains(key)) {
+                Ask ask = Ask.builder()
+                        .bond(bond)
+                        .triggerTerm(key)
+                        .dueDate(chat.getDueDate())
+                        .originalContent(chat.getContent())
+                        .build();
+                asks.add(ask);
+            }
+        }));
+        return new ArrayList<>(asks);
+    }
+
+    private void saveChats(String filename, List<Chat> chats) {
         try {
-            return String.valueOf(LocalDate.parse(date, formatter));
-        } catch (DateTimeParseException e) {
-            return null;
+            s3FileRepository.saveChatFile(filename, convertToInputStream(chats), MediaType.APPLICATION_JSON_VALUE);
+        } catch (Exception e) {
+            throw new RuntimeException("Error saving chats for filename: " + filename, e);
         }
     }
+
+    public InputStream convertToInputStream(Object o)  {
+        String jsonString = null;
+        try {
+            jsonString = objectMapper.writeValueAsString(o);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return new ByteArrayInputStream(jsonString.getBytes());
+    }
+
+    private String preprocess(String rawText) {
+        // 첫줄 제거
+        int index = rawText.indexOf("\r\n");
+        rawText = rawText.substring(index + "\r\n".length());
+        Map<String, String> rules = data.getReplacementRules();
+        for (Map.Entry<String, String> entry : rules.entrySet()) {
+            rawText = rawText.replace(entry.getKey(),entry.getValue());
+        }
+
+        return rawText;
+    }
+
 }

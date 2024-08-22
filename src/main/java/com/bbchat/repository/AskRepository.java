@@ -1,4 +1,4 @@
-package com.bbchat.domain.repository;
+package com.bbchat.repository;
 
 import com.bbchat.domain.entity.Ask;
 import com.bbchat.domain.entity.BondAlias;
