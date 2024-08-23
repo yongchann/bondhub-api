@@ -3,8 +3,10 @@ package com.bbchat.service;
 import com.bbchat.domain.BondType;
 import com.bbchat.domain.entity.Bond;
 import com.bbchat.domain.entity.BondAlias;
+import com.bbchat.domain.entity.BondIssuer;
 import com.bbchat.domain.entity.ExclusionKeyword;
 import com.bbchat.repository.BondAliasRepository;
+import com.bbchat.repository.BondIssuerRepository;
 import com.bbchat.repository.BondRepository;
 import com.bbchat.repository.ExclusionKeywordRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,10 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Getter
@@ -31,9 +30,12 @@ public class ChatProcessingRules {
     private final ExclusionKeywordRepository exclusionKeywordRepository;
     private final BondAliasRepository bondAliasRepository;
     private final BondRepository bondRepository;
+    private final BondIssuerRepository bondIssuerRepository;
     private final ObjectMapper objectMapper;
 
-    private Map<String, Bond> aliasToBondMap = new HashMap<>();
+    private Map<String, BondIssuer> aliasToBondIssuerMap = new HashMap<>();
+    private Map<BondIssuer, List<String>> bondAliasesMap = new HashMap<>();
+    private Set<Bond> bondSet = new HashSet<>();
     private List<String> exclusionKeywords = new ArrayList<>();
     private List<String> askKeywords = List.of("팔자");
     private Map<String, String> replacementRules = Map.of(
@@ -44,32 +46,43 @@ public class ChatProcessingRules {
     @Transactional
     @EventListener(ApplicationReadyEvent.class)
     protected void init() {
-        initBonds();
+        initBondIssuers();
         initExclusionKeywords();
         refresh();
     }
 
-    private void initBonds() {
+    private void initBondIssuers() {
         loadBondsFromFile("bond_bank.json", BondType.BANK);
-        loadBondsFromFile("bond_company.json", BondType.COMP);
-        loadBondsFromFile("bond_public.json", BondType.PUB);
-        loadBondsFromFile("bond_specialized_credit.json", BondType.FIN);
+        loadBondsFromFile("bond_company.json", BondType.COMPANY);
+        loadBondsFromFile("bond_public.json", BondType.PUBLIC);
+        loadBondsFromFile("bond_specialized_credit.json", BondType.SPECIALIZED_CREDIT);
+
+        for (Map.Entry<BondIssuer, List<String>> entry : bondAliasesMap.entrySet()) {
+            List<String> aliases = entry.getValue();
+            aliases.sort((a, b) -> Integer.compare(b.length(), a.length())); // 길이 역순으로 정렬
+            bondAliasesMap.put(entry.getKey(), aliases); // 정렬된 리스트로 다시 저장
+        }
     }
 
     private void loadBondsFromFile(String fileName, BondType bondType) {
         ClassPathResource resource = new ClassPathResource(fileName);
         try {
-            Map<String, List<String>> bondMap = objectMapper.readValue(resource.getInputStream(), new TypeReference<>() {});
-            bondMap.forEach((name, aliases) -> {
-                Bond bond = bondRepository.save(Bond.builder()
+            Map<String, List<String>> bondIssuerWithAliases = objectMapper.readValue(resource.getInputStream(), new TypeReference<>() {});
+            bondIssuerWithAliases.forEach((issuerName, aliases) -> {
+                BondIssuer bondIssuer = BondIssuer.builder()
                         .type(bondType)
-                        .primaryName(name)
-                        .build());
+                        .name(issuerName)
+                        .build();
+                bondIssuerRepository.save(bondIssuer);
 
-                aliases.forEach(alias -> bondAliasRepository.save(BondAlias.builder()
-                        .bond(bond)
+                List<BondAlias> bondAliases = aliases.stream().map(alias -> BondAlias.builder()
+                        .bondIssuer(bondIssuer)
                         .name(alias)
-                        .build()));
+                        .build()).toList();
+
+                bondAliasRepository.saveAll(bondAliases);
+
+                bondAliasesMap.put(bondIssuer, aliases);
             });
         } catch (IOException e) {
             throw new RuntimeException("Error loading bonds from file: " + fileName, e);
@@ -92,11 +105,11 @@ public class ChatProcessingRules {
     }
 
     public void refresh() {
-        aliasToBondMap.clear();
+        aliasToBondIssuerMap.clear();
         List<BondAlias> bondAliases = bondAliasRepository.findAllFetchBond();
         for (BondAlias bondAlias : bondAliases) {
-            Bond bond = bondAlias.getBond();
-            aliasToBondMap.put(bondAlias.getName(), bond);
+            BondIssuer bondIssuer = bondAlias.getBondIssuer();
+            aliasToBondIssuerMap.put(bondAlias.getName(), bondIssuer);
         }
 
         exclusionKeywords.clear();
@@ -106,5 +119,7 @@ public class ChatProcessingRules {
         }
     }
 
-
+    public void updateBondSet(Set<Bond> newBondSet) {
+        this.bondSet.addAll(newBondSet);
+    }
 }

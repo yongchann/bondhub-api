@@ -1,6 +1,6 @@
 package com.bbchat.controller.v1;
 
-import com.bbchat.service.AskService;
+import com.bbchat.service.AggregationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AggregationController {
 
-    private final AskService askService;
+    private final AggregationService aggregationService;
 
     @PostMapping("/api/v1/aggregation/chat")
     public void aggregateDaily(@RequestParam("date") String date) {
-        askService.aggregate(date);
+        aggregationService.aggregate(date);
     }
 }
