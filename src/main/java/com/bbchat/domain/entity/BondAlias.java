@@ -16,8 +16,8 @@ public class BondAlias {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "bond_id")
-    private Bond bond;
+    @JoinColumn(name = "bond_issuer_id")
+    private BondIssuer bondIssuer;
 
     private String name;
 }

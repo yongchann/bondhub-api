@@ -10,34 +10,31 @@ import java.util.Objects;
 @Builder
 @Getter
 @Entity
-public class Ask {
+public class DailyAsk {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ask_id")
+    @Column(name = "daily_ask_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "bond_id")
     private Bond bond;
 
-    private String triggerTerm;
+    private int consecutiveDays;
 
-    private String dueDate;
-
-    private String originalContent;
+    private String createdDate;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Ask ask = (Ask) o;
-        return Objects.equals(bond, ask.bond) &&
-                Objects.equals(dueDate, ask.dueDate);
+        DailyAsk dailyAsk = (DailyAsk) o;
+        return Objects.equals(bond, dailyAsk.bond) && Objects.equals(createdDate, dailyAsk.createdDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bond, dueDate);
+        return Objects.hash(bond, createdDate);
     }
 }

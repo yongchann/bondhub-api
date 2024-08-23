@@ -1,11 +1,9 @@
 package com.bbchat.domain.entity;
 
-import com.bbchat.domain.BondType;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Objects;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -19,9 +17,29 @@ public class Bond {
     @Column(name = "bond_id")
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    private BondType type;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bond_issuer_id")
+    private BondIssuer bondIssuer;
 
-    private String primaryName;
+    private String dueDate;
+
+    public Bond(BondIssuer bondIssuer, String dueDate) {
+        this.bondIssuer = bondIssuer;
+        this.dueDate = dueDate;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bond bond = (Bond) o;
+        return Objects.equals(bondIssuer, bond.bondIssuer) &&
+                Objects.equals(dueDate, bond.dueDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bondIssuer, dueDate);
+    }
 
 }

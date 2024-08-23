@@ -19,6 +19,4 @@ public class DailyAskAggregation extends BaseTimeEntity {
 
     private String filename;
 
-    private String jsonAskData;
-
 }

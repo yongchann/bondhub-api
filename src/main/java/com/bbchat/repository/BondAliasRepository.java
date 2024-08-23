@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface BondAliasRepository extends JpaRepository<BondAlias, Long> {
 
-    @Query("SELECT ba FROM BondAlias ba JOIN FETCH ba.bond")
+    @Query("SELECT ba FROM BondAlias ba JOIN FETCH ba.bondIssuer")
     List<BondAlias> findAllFetchBond();
 }
