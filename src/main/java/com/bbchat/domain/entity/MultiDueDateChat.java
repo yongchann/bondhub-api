@@ -21,4 +21,12 @@ public class MultiDueDateChat {
 
     @Enumerated(EnumType.STRING)
     private ChatStatus status;
+
+    private String senderName;
+
+    private String sendDateTime;
+
+    private String senderAddress;
+
+
 }

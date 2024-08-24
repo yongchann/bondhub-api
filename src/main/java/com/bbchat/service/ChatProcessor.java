@@ -214,13 +214,15 @@ public class ChatProcessor {
 
     private void saveMultiDueDateChats(String date, List<Chat> validMultiDueDateChats) {
         List<MultiDueDateChat> multiDueDateChatEntity = validMultiDueDateChats.stream()
-                .map(chat -> {
-                    return MultiDueDateChat.builder()
+                .map(chat -> MultiDueDateChat.builder()
                             .content(chat.getContent())
                             .chatCreatedDate(date)
                             .status(ChatStatus.CREATED)
-                            .build();
-                }).toList();
+                            .sendDateTime(chat.getSendDateTime())
+                            .senderAddress(chat.getSenderAddress())
+                            .senderName(chat.getSenderName())
+                            .build()
+                ).toList();
         multiDueDateChatRepository.saveAll(multiDueDateChatEntity);
     }
 }
