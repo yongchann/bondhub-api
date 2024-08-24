@@ -21,4 +21,6 @@ public class BondIssuer {
 
     private String name;
 
+    private String grade;
+
 }
