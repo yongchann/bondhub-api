@@ -1,11 +1,9 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.dto.AskDto;
 import com.bbchat.domain.BondType;
 import com.bbchat.domain.DailyAskSummary;
-import com.bbchat.domain.dto.MultiDueDateChatDto;
+import com.bbchat.domain.dto.DailyAskDto;
 import com.bbchat.domain.entity.DailyAsk;
-import com.bbchat.domain.entity.MultiDueDateChat;
 import com.bbchat.repository.DailyAskRepository;
 import com.bbchat.repository.MultiDueDateChatRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,28 +18,44 @@ public class AggregationService {
 
     private final ChatProcessor chatProcessor;
     private final DailyAskRepository dailyAskRepository;
-    private final MultiDueDateChatRepository multiDueDateChatRepository;
 
     public void aggregate(String date) {
         chatProcessor.process(date);
     }
 
-    public DailyAskSummary getSummary(String date) {
+    public DailyAskSummary getSummary(String date, String startDueDate, String endDueDate, String bondType, String grade) {
+        // 주어진 날짜에 생성된 DailyAsk 데이터 조회
         List<DailyAsk> dailyAsks = dailyAskRepository.findByCreatedDate(date);
 
-        // 필터링 및 그룹화를 위해 BondIssuer를 기준으로 분류합니다.
-        List<DailyAsk> publicAsks = filterAsksByBondIssuerType(dailyAsks, BondType.PUBLIC);
-        List<DailyAsk> bankAsks = filterAsksByBondIssuerType(dailyAsks, BondType.BANK);
-        List<DailyAsk> specializedCreditAsks = filterAsksByBondIssuerType(dailyAsks, BondType.SPECIALIZED_CREDIT);
-        List<DailyAsk> companyAsks = filterAsksByBondIssuerType(dailyAsks, BondType.COMPANY);
-        List<MultiDueDateChat> multiDueDateChats = multiDueDateChatRepository.findByChatCreatedDate(date);
+        if (bondType != null && !bondType.isEmpty()) {
+            dailyAsks = dailyAsks.stream()
+                    .filter(ask -> bondType.equals(ask.getBond().getBondIssuer().getType().name()))
+                    .collect(Collectors.toList());
+        }
 
+        if (grade != null && !grade.isEmpty()) {
+            dailyAsks = dailyAsks.stream()
+                    .filter(ask -> grade.equals(ask.getBond().getBondIssuer().getGrade()))
+                    .collect(Collectors.toList());
+        }
+
+        if ((startDueDate != null && !startDueDate.isEmpty()) || (endDueDate != null && !endDueDate.isEmpty())) {
+            dailyAsks = dailyAsks.stream()
+                    .filter(ask -> {
+                        String dueDate = ask.getBond().getDueDate(); // Bond의 dueDate를 문자열로 가져옴
+                        boolean isAfterStart = startDueDate == null || dueDate.compareTo(startDueDate) >= 0;
+                        boolean isBeforeEnd = endDueDate == null || dueDate.compareTo(endDueDate) <= 0;
+                        return isAfterStart && isBeforeEnd;
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // 결과 요약 객체 생성 및 반환
         DailyAskSummary summary = new DailyAskSummary();
-        summary.setPublicAsks(convertToAskDto(publicAsks));
-        summary.setBankAsks(convertToAskDto(bankAsks));
-        summary.setSpecializedCreditAsks(convertToAskDto(specializedCreditAsks));
-        summary.setCompanyAsks(convertToAskDto(companyAsks));
-        summary.setMultiDueDateChats(convertToMultiDueDateChatDto(multiDueDateChats));
+        summary.setPublicAsks(convertToAskDto(filterAsksByBondIssuerType(dailyAsks, BondType.PUBLIC)));
+        summary.setBankAsks(convertToAskDto(filterAsksByBondIssuerType(dailyAsks, BondType.BANK)));
+        summary.setSpecializedCreditAsks(convertToAskDto(filterAsksByBondIssuerType(dailyAsks, BondType.SPECIALIZED_CREDIT)));
+        summary.setCompanyAsks(convertToAskDto(filterAsksByBondIssuerType(dailyAsks, BondType.COMPANY)));
 
         return summary;
     }
@@ -52,23 +66,14 @@ public class AggregationService {
                 .collect(Collectors.toList());
     }
 
-    private List<AskDto> convertToAskDto(List<DailyAsk> dailyAsks) {
+    private List<DailyAskDto> convertToAskDto(List<DailyAsk> dailyAsks) {
         return dailyAsks.stream()
-                .map(dailyAsk -> AskDto.builder()
+                .map(dailyAsk -> DailyAskDto.builder()
                         .bondName(dailyAsk.getBond().getBondIssuer().getName())
                         .dueDate(dailyAsk.getBond().getDueDate())
                         .consecutiveDays(dailyAsk.getConsecutiveDays())
                         .build())
                 .collect(Collectors.toList());
-    }
-
-    private List<MultiDueDateChatDto> convertToMultiDueDateChatDto(List<MultiDueDateChat> multiDueDateChats) {
-        return multiDueDateChats.stream()
-                .map(chat -> MultiDueDateChatDto.builder()
-                        .content(chat.getContent())
-                        .id(chat.getId())
-                        .build())
-                .toList();
     }
 
 }

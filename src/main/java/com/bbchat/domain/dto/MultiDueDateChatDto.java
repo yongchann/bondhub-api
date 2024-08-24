@@ -13,4 +13,12 @@ public class MultiDueDateChatDto {
 
     private String content;
 
+    private String chatCreatedDate;
+
+    private String senderName;
+
+    private String sendDateTime;
+
+    private String senderAddress;
+
 }

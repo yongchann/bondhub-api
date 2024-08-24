@@ -1,7 +1,6 @@
 package com.bbchat.domain;
 
-import com.bbchat.domain.dto.AskDto;
-import com.bbchat.domain.dto.MultiDueDateChatDto;
+import com.bbchat.domain.dto.DailyAskDto;
 import lombok.*;
 
 import java.util.List;
@@ -13,13 +12,12 @@ import java.util.List;
 @Getter
 public class DailyAskSummary {
 
-    private List<AskDto> publicAsks;
+    private List<DailyAskDto> publicAsks;
 
-    private List<AskDto> bankAsks;
+    private List<DailyAskDto> bankAsks;
 
-    private List<AskDto> specializedCreditAsks;
+    private List<DailyAskDto> specializedCreditAsks;
 
-    private List<AskDto> companyAsks;
+    private List<DailyAskDto> companyAsks;
 
-    private List<MultiDueDateChatDto> multiDueDateChats;
 }
