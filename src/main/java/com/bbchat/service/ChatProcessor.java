@@ -93,14 +93,10 @@ public class ChatProcessor {
     }
 
     private List<DailyAsk> processValidChats(List<Chat> validChats, String todayStr) {
-        LocalDate today = parseDate(todayStr);
-        LocalDate yesterday = today.minusDays(1);
-
         Set<DailyAsk> result = new HashSet<>();
-        Map<BondIssuer, List<String>> bondAliasesMap = rules.getBondAliasesMap();
-
         List<Chat> uncategorizedChats = new ArrayList<>();
 
+        Map<BondIssuer, List<String>> bondAliasesMap = rules.getBondAliasesMap();
         validChats.forEach(chat -> {
             AtomicBoolean matched = new AtomicBoolean(false);
 
@@ -110,9 +106,9 @@ public class ChatProcessor {
                 for (String alias : aliases) {
                     if (chat.getContent().contains(alias)) {
                         Bond bond = findOrCreateBond(bondIssuer, chat.getDueDate());
-                        int consecutiveDays = findOrCreateDailyAsk(bond, yesterday);
+                        int consecutiveDays = findOrCreateDailyAsk(bond, getYesterdayStr(todayStr));
 
-                        DailyAsk dailyAsk = createDailyAsk(bond, today, consecutiveDays);
+                        DailyAsk dailyAsk = createDailyAsk(bond, todayStr, consecutiveDays);
                         result.add(dailyAsk);
 
                         matched.set(true);
@@ -126,8 +122,15 @@ public class ChatProcessor {
             }
         });
 
-        saveChats(String.format("%s/%s.json", today, "UNCATEGORIZED"), uncategorizedChats);
+        saveChats(String.format("%s/%s.json", todayStr, "UNCATEGORIZED"), uncategorizedChats);
         return new ArrayList<>(result);
+    }
+
+    private String getYesterdayStr(String todayStr) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy-MM-dd");
+        LocalDate today = LocalDate.parse(todayStr, formatter);
+        LocalDate yesterday = today.minusDays(1);
+        return yesterday.format(formatter);
     }
 
     private Bond findOrCreateBond(BondIssuer bondIssuer, String dueDate) {
@@ -135,21 +138,15 @@ public class ChatProcessor {
                 .orElseGet(() -> bondRepository.save(new Bond(bondIssuer, dueDate)));
     }
 
-    private int findOrCreateDailyAsk(Bond bond, LocalDate yesterday) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy-MM-dd");
-        String yesterdayStr = yesterday.format(formatter);
-
-        Optional<DailyAsk> optionalDailyAsk = dailyAskRepository.findByBondAndDate(bond, yesterdayStr);
+    private int findOrCreateDailyAsk(Bond bond, String date) {
+        Optional<DailyAsk> optionalDailyAsk = dailyAskRepository.findByBondAndDate(bond, date);
         return optionalDailyAsk.map(DailyAsk::getConsecutiveDays).orElse(0) + 1;
     }
 
-    private DailyAsk createDailyAsk(Bond bond, LocalDate today, int consecutiveDays) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy-MM-dd");
-        String todayStr = today.format(formatter);
-
+    private DailyAsk createDailyAsk(Bond bond, String createDate, int consecutiveDays) {
         return DailyAsk.builder()
                 .bond(bond)
-                .createdDate(todayStr)
+                .createdDate(createDate)
                 .consecutiveDays(consecutiveDays)
                 .build();
     }
