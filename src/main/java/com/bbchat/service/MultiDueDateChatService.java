@@ -1,6 +1,6 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.dto.MultiDueDateChatDto;
+import com.bbchat.service.dto.MultiDueDateChatDto;
 import com.bbchat.domain.entity.ChatStatus;
 import com.bbchat.domain.entity.MultiDueDateChat;
 import com.bbchat.repository.MultiDueDateChatRepository;

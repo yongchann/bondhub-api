@@ -1,6 +1,5 @@
-package com.bbchat.domain;
+package com.bbchat.service.dto;
 
-import com.bbchat.domain.dto.DailyAskDto;
 import lombok.*;
 
 import java.util.List;

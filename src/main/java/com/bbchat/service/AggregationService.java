@@ -1,11 +1,10 @@
 package com.bbchat.service;
 
 import com.bbchat.domain.BondType;
-import com.bbchat.domain.DailyAskSummary;
-import com.bbchat.domain.dto.DailyAskDto;
+import com.bbchat.service.dto.DailyAskSummary;
+import com.bbchat.service.dto.DailyAskDto;
 import com.bbchat.domain.entity.DailyAsk;
 import com.bbchat.repository.DailyAskRepository;
-import com.bbchat.repository.MultiDueDateChatRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,7 @@
 package com.bbchat.controller.v1;
 
-import com.bbchat.domain.DailyAskSummary;
-import com.bbchat.domain.dto.MultiDueDateChatDto;
+import com.bbchat.service.dto.DailyAskSummary;
+import com.bbchat.service.dto.MultiDueDateChatDto;
 import com.bbchat.service.AggregationService;
 import com.bbchat.service.MultiDueDateChatService;
 import lombok.RequiredArgsConstructor;

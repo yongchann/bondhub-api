@@ -1,4 +1,4 @@
-package com.bbchat.domain.dto;
+package com.bbchat.service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
