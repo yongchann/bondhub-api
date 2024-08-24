@@ -2,11 +2,10 @@ package com.bbchat.service;
 
 import com.bbchat.domain.Chat;
 import com.bbchat.domain.ChatValidityType;
-import com.bbchat.domain.entity.Bond;
-import com.bbchat.domain.entity.BondIssuer;
-import com.bbchat.domain.entity.DailyAsk;
+import com.bbchat.domain.entity.*;
 import com.bbchat.repository.BondRepository;
 import com.bbchat.repository.DailyAskRepository;
+import com.bbchat.repository.MultiDueDateChatRepository;
 import com.bbchat.support.FileInfo;
 import com.bbchat.support.S3FileRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,6 +32,7 @@ public class ChatProcessor {
     private final S3FileRepository s3FileRepository;
     private final BondRepository bondRepository;
     private final DailyAskRepository dailyAskRepository;
+    private final MultiDueDateChatRepository multiDueDateChatRepository;
 
     private final ObjectMapper objectMapper;
     private final ChatParser chatParser;
@@ -59,6 +59,10 @@ public class ChatProcessor {
 
         List<Chat> validChats = chatsByDueDateCount.get(ChatValidityType.VALID_SINGLE_DUE_DATE);
         log.info("Processing valid chats with single due date, count: {}", validChats.size());
+        
+        List<Chat> validMultiDueDateChats = chatsByDueDateCount.get(ChatValidityType.VALID_MULTI_DUE_DATE);
+        saveMultiDueDateChats(date, validMultiDueDateChats);
+        log.info("Saved valid chats with multi due date, count: {}", validMultiDueDateChats.size());
 
         int dailyAsksSize = categorize(date, validChats);
         log.info("Processed {} DailyAsk entities", dailyAsksSize);
@@ -206,5 +210,17 @@ public class ChatProcessor {
         }
 
         return rawText;
+    }
+
+    private void saveMultiDueDateChats(String date, List<Chat> validMultiDueDateChats) {
+        List<MultiDueDateChat> multiDueDateChatEntity = validMultiDueDateChats.stream()
+                .map(chat -> {
+                    return MultiDueDateChat.builder()
+                            .content(chat.getContent())
+                            .chatCreatedDate(date)
+                            .status(ChatStatus.CREATED)
+                            .build();
+                }).toList();
+        multiDueDateChatRepository.saveAll(multiDueDateChatEntity);
     }
 }
