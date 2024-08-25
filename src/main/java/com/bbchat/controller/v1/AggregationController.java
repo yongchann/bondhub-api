@@ -1,6 +1,7 @@
 package com.bbchat.controller.v1;
 
 import com.bbchat.service.dto.DailyAskSummary;
+import com.bbchat.service.dto.DailyTransactionSummary;
 import com.bbchat.service.dto.MultiDueDateChatDto;
 import com.bbchat.service.AggregationService;
 import com.bbchat.service.MultiDueDateChatService;
@@ -20,19 +21,19 @@ public class AggregationController {
     private final MultiDueDateChatService multiDueDateChatService;
 
     @PostMapping("/api/v1/aggregation/chat")
-    public void aggregateDaily(@RequestParam("date") String date) {
-        aggregationService.aggregate(date);
+    public void aggregateDailyChat(@RequestParam("date") String date) {
+        aggregationService.aggregateChat(date);
     }
 
     @GetMapping("/api/v1/aggregation/chat")
-    public DailyAskSummary getAggregation(
+    public DailyAskSummary getChatAggregation(
             @RequestParam("date") String date,
             @RequestParam(value = "startDueDate", required = false) String startDueDate,
             @RequestParam(value = "endDueDate", required = false) String endDueDate,
             @RequestParam(value = "bondType", required = false) String bondType,
             @RequestParam(value = "grade", required = false) String grade) {
 
-        DailyAskSummary summary = aggregationService.getSummary(date, startDueDate, endDueDate, bondType, grade);
+        DailyAskSummary summary = aggregationService.getAskSummary(date, startDueDate, endDueDate, bondType, grade);
         return summary;
     }
 
@@ -40,5 +41,23 @@ public class AggregationController {
     public List<MultiDueDateChatDto> getMultiDueDateChats(@RequestParam("date") String date) {
         return multiDueDateChatService.getByDate(date);
     }
+
+    @PostMapping("/api/v1/aggregation/transaction")
+    public void aggregateDailyTransaction(@RequestParam("date") String date) {
+        aggregationService.aggregateTransaction(date);
+    }
+
+    @GetMapping("/api/v1/aggregation/transaction")
+    public DailyTransactionSummary getTransactionAggregation(
+            @RequestParam("date") String date,
+            @RequestParam(value = "startDueDate", required = false) String startDueDate,
+            @RequestParam(value = "endDueDate", required = false) String endDueDate,
+            @RequestParam(value = "bondType", required = false) String bondType,
+            @RequestParam(value = "grade", required = false) String grade) {
+
+        DailyTransactionSummary summary = aggregationService.getTransactionSummary(date, startDueDate, endDueDate, bondType, grade);
+        return summary;
+    }
+
 
 }

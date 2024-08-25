@@ -24,6 +24,8 @@ dependencies {
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.0' // Use the latest version available
 	annotationProcessor 'org.projectlombok:lombok'
 	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+	implementation 'org.apache.poi:poi:5.2.3'          // Apache POI core library
+	implementation 'org.apache.poi:poi-ooxml:5.2.3'    // Apache POI OOXML (for .xlsx files)
 //	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	runtimeOnly 'com.h2database:h2'

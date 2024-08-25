@@ -4,8 +4,9 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.util.IOUtils;
-import jdk.jfr.ContentType;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -35,7 +36,7 @@ public class S3FileRepository {
     }
 
     public FileInfo getChatFileByDate(String date) {
-        S3Object object = s3Client.getObject(BUCKET_NAME, CHAT_FILE_KEY_PREFIX+date+"/ORIGINAL.txt");
+        S3Object object = s3Client.getObject(BUCKET_NAME, CHAT_FILE_KEY_PREFIX + date + "/ORIGINAL.txt");
 
         long size = object.getObjectMetadata().getContentLength();
         String contentType = object.getObjectMetadata().getContentType();
@@ -54,4 +55,40 @@ public class S3FileRepository {
                 .build();
     }
 
+    public FileInfo getTransactionFileByDate(String date) {
+        S3Object object = s3Client.getObject(BUCKET_NAME, TRANSACTION_FILE_KEY_PREFIX+date+"/ORIGINAL.xlsx");
+        long size = object.getObjectMetadata().getContentLength();
+        String contentType = object.getObjectMetadata().getContentType();
+        InputStream inputStream = object.getObjectContent();
+
+        return FileInfo.builder()
+                .filename(date)
+                .size(size)
+                .contentType(contentType)
+                .content("")
+                .inputStream(inputStream)
+                .build();
+    }
+
+    private String getCellValueAsString(Cell cell) {
+        if (cell == null) {
+            return "";
+        }
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getDateCellValue().toString();
+                } else {
+                    return String.valueOf(cell.getNumericCellValue());
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                return cell.getCellFormula();
+            default:
+                return "";
+        }
+    }
 }
