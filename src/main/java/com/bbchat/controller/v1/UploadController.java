@@ -29,4 +29,16 @@ public class UploadController {
         return ResponseEntity.ok(new UploadFileResponse(date));
     }
 
+    @PostMapping("/api/v1/upload/transaction")
+    public ResponseEntity<?> uploadTransactionFile(@RequestParam("date") String date, @RequestParam("file") MultipartFile file) {
+        try {
+            fileRepository.saveExcelFile(date+"/ORIGINAL.xlsx", file.getInputStream(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        return ResponseEntity.ok(new UploadFileResponse(date));
+    }
+
 }

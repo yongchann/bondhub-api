@@ -18,12 +18,20 @@ public class S3FileRepository {
     private final AmazonS3Client s3Client;
     private final static String BUCKET_NAME = "bbchat-bucket";
     private final static String CHAT_FILE_KEY_PREFIX = "chat/";
+    private final static String TRANSACTION_FILE_KEY_PREFIX = "transaction/";
 
     public void saveChatFile(String date, InputStream inputStream, String contentType) {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType(contentType);
         metadata.setContentEncoding("UTF-8");
         s3Client.putObject(BUCKET_NAME, CHAT_FILE_KEY_PREFIX + date, inputStream, metadata);
+    }
+
+    public void saveExcelFile(String date, InputStream inputStream, String contentType) {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType(contentType);
+        metadata.setContentEncoding("UTF-8");
+        s3Client.putObject(BUCKET_NAME, TRANSACTION_FILE_KEY_PREFIX + date, inputStream, metadata);
     }
 
     public FileInfo getChatFileByDate(String date) {
