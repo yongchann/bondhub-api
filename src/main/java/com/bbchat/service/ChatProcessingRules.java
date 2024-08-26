@@ -40,6 +40,8 @@ public class ChatProcessingRules {
     private List<String> askKeywords = List.of("팔자");
     private Map<String, String> replacementRules = Map.of(
             "[부국채영]368-9532", "([부국채영]368-9532])",
+            "(DS투자증권 채권전략팀 02)709-2701)", "(DS투자증권 채권전략팀 02-709-2701)",
+            "[흥국채금 6260-2460)", "[흥국채금 6260-2460]",
             "김성훈(부국)", "김성훈부국",
             "\r\n", " ");
 
