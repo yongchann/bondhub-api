@@ -1,5 +1,6 @@
 package com.bbchat.domain.entity;
 
 public enum ChatStatus {
-    CREATED, ABANDONED, COMPLETED
+    CREATED, NOT_USED, MULTI_DD, SINGLE_DD, UNCATEGORIZED, OK,
+
 }
