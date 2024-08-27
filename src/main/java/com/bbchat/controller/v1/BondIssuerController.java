@@ -1,7 +1,7 @@
 package com.bbchat.controller.v1;
 
 import com.bbchat.controller.v1.response.BondIssuerResponse;
-import com.bbchat.domain.BondType;
+import com.bbchat.domain.bond.BondType;
 import com.bbchat.service.BondAliasService;
 import com.bbchat.service.BondIssuerService;
 import com.bbchat.service.dto.BondIssuerDto;

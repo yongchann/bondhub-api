@@ -1,4 +1,4 @@
-package com.bbchat.domain.entity;
+package com.bbchat.domain.bond;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,15 +8,19 @@ import lombok.*;
 @Builder
 @Getter
 @Entity
-public class DailyAskAggregation extends BaseTimeEntity {
+public class BondIssuer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "daily_ask_aggregation_id")
+    @Column(name = "bond_issuer_id")
     private Long id;
 
-    private String date;
+    @Enumerated(EnumType.STRING)
+    private BondType type;
 
-    private String filename;
+    private String name;
+
+    @Setter
+    private String grade;
 
 }

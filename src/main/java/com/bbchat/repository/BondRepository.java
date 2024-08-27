@@ -1,7 +1,7 @@
 package com.bbchat.repository;
 
-import com.bbchat.domain.entity.Bond;
-import com.bbchat.domain.entity.BondIssuer;
+import com.bbchat.domain.bond.Bond;
+import com.bbchat.domain.bond.BondIssuer;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

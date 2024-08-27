@@ -1,8 +1,7 @@
 package com.bbchat.repository;
 
-import com.bbchat.domain.entity.Bond;
-import com.bbchat.domain.entity.DailyAsk;
-import com.bbchat.domain.entity.DailyTransaction;
+import com.bbchat.domain.bond.Bond;
+import com.bbchat.domain.transaction.DailyTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -11,14 +10,14 @@ import java.util.Optional;
 
 public interface DailyTransactionRepository extends JpaRepository<DailyTransaction, Long> {
 
-    @Query("SELECT da FROM DailyTransaction da WHERE da.bond = :bond AND da.createdDate = :date")
-    Optional<DailyTransaction> findByBondAndDate(Bond bond, String date);
+    @Query("SELECT da FROM DailyTransaction da WHERE da.bond = :bond AND da.transactionDate = :transactionDate")
+    Optional<DailyTransaction> findByBondAndDate(Bond bond, String transactionDate);
 
-    void deleteAllByCreatedDate(String date);
+    void deleteAllByTransactionDate(String date);
 
     @Query("SELECT dt FROM DailyTransaction dt " +
             "JOIN FETCH dt.bond b " +
             "JOIN FETCH b.bondIssuer bi " +
-            "WHERE dt.createdDate = :createdDate")
-    List<DailyTransaction> findByCreatedDate(String createdDate);
+            "WHERE dt.transactionDate = :transactionDate")
+    List<DailyTransaction> findByCreatedDate(String transactionDate);
 }

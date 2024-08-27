@@ -1,13 +1,13 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.entity.BondAlias;
-import com.bbchat.domain.entity.BondIssuer;
+import com.bbchat.domain.bond.BondAlias;
+import com.bbchat.domain.bond.BondIssuer;
 import com.bbchat.repository.BondAliasRepository;
 import com.bbchat.repository.BondIssuerRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -16,6 +16,8 @@ public class BondAliasService {
 
     private final BondIssuerRepository bondIssuerRepository;
     private final BondAliasRepository bondAliasRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     public void addBondAlias(Long bondIssuerId, String bondAliasName) {
 
@@ -33,6 +35,8 @@ public class BondAliasService {
                 .name(bondAliasName)
                 .bondIssuer(bondIssuerOpt.get())
                 .build());
+
+//        eventPublisher.publishEvent(new BondAliasAddedEvent(this, "bond alias added. bondIssuerId: %d, bondAliasName:%s".formatted(bondIssuerId, bondAliasName)));
     }
 
     public void deleteBondAlias(Long bondIssuerId, Long bondAliasId) {

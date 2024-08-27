@@ -1,4 +1,4 @@
-package com.bbchat.domain;
+package com.bbchat.domain.bond;
 
 public enum BondType {
     PUBLIC("공사채"),

@@ -1,8 +1,7 @@
 package com.bbchat.repository;
 
-import com.bbchat.domain.entity.Bond;
-import com.bbchat.domain.entity.BondIssuer;
-import com.bbchat.domain.entity.DailyAsk;
+import com.bbchat.domain.bond.Bond;
+import com.bbchat.domain.ask.DailyAsk;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -19,4 +18,7 @@ public interface DailyAskRepository extends JpaRepository<DailyAsk, Long> {
             "JOIN FETCH b.bondIssuer bi " +
             "WHERE da.createdDate = :createdDate")
     List<DailyAsk> findByCreatedDate(String createdDate);
+
+    void deleteAllByCreatedDate(String date);
+
 }

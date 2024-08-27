@@ -1,5 +1,6 @@
 package com.bbchat.domain.entity;
 
+import com.bbchat.domain.ask.DailyAsk;
 import jakarta.persistence.*;
 import lombok.*;
 

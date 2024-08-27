@@ -1,14 +1,28 @@
-package com.bbchat.domain;
+package com.bbchat.domain.transaction;
 
+import com.bbchat.domain.bond.Bond;
+import jakarta.persistence.*;
 import lombok.*;
 
-@Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@ToString
-public class Transaction {
+@Getter
+@Entity
+public class DailyTransaction {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "daily_transaction_id")
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "bond_id")
+    private Bond bond;
+
+    @Setter
+    @Enumerated(EnumType.STRING)
+    private TransactionStatus status;
 
     private String time;                    // 시간
 //    private String marketType;              // 시장구분
@@ -23,7 +37,7 @@ public class Transaction {
     private String yield;                   // 민평수익율
     private String price;                   // 민평가격
 //    private String settlement;              // 결제
-//    private String date;                    // 일자
+    private String transactionDate;         // 일자
     private String standardCode;            // 표준코드
     private String maturityType;            // 만기구분
     private String remainingMaturity;       // 잔존만기
@@ -34,7 +48,7 @@ public class Transaction {
 //    private String spread4Price;            // 민평4사대비(P)
 //    private String yield4;                  // 민평4사수익율
 //    private String price4;                  // 민평4사가격
-//    private String issuerCode;              // 발행사코드
+    private String issuerCode;              // 발행사코드
     private String issuerName;              // 발행사명
 //    private String pre3Diff;                // 3사세전대비
 //    private String pre3Price;               // 3사세전단가
@@ -47,5 +61,15 @@ public class Transaction {
 //    private String tradingNature;           // 매매성격
 //    private String tradingType;             // 매매유형
 //    private String publicOrPrivate;         // 공모/사모
-}
 
+
+    public void modifyStatusCreated(String transactionDate) {
+        this.status = TransactionStatus.CREATED;
+        this.transactionDate = transactionDate;
+    }
+
+    public void modifyStatusOk(Bond bond) {
+        this.status = TransactionStatus.OK;
+        this.bond = bond;
+    }
+}

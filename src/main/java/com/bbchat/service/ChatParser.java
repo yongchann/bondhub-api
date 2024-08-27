@@ -1,6 +1,7 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.Chat;
+import com.bbchat.domain.entity.Chat;
+import com.bbchat.domain.entity.ChatStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,11 +15,10 @@ import java.util.regex.Pattern;
 public class ChatParser {
 
     private static final String CHAT_MESSAGE_SEARCH_PATTERN = "([A-Za-z\\.가-힣0-9 女]+) \\((\\d{2}:\\d{2}:\\d{2})\\) :\\s*(.*?)(?=(?:[A-Z0-9a-z\\.가-힣 女]+\\s\\(\\d{2}:\\d{2}:\\d{2}\\)|$))";
-//    private static final String CHAT_MESSAGE_SEARCH_PATTERN = "([A-Za-z\\.가-힣0-9 女]+) \\((\\d{2}:\\d{2}:\\d{2})\\) :\\s*(.*?)";
     private static final String SENDER_ADDRESS_PATTERN = "\\s*\\([^)]*\\)\\s*$|\\s*\\[[^]]*\\]\\s*$|\\s*\\{[^}]*\\}\\s*$|\\s*<[^>]*>\\s*$";
     private static final String VALID_DUE_DATE_PATTERN = "\\d{2}[./-]\\d{1,2}[./-]\\d{1,2}";
 
-    public List<Chat> parseChatsFromRawText(String rawText) {
+    public List<Chat> parseChatsFromRawText(String chatDate, String rawText) {
         Pattern pattern = Pattern.compile(CHAT_MESSAGE_SEARCH_PATTERN);
         Matcher matcher = pattern.matcher(rawText);
 
@@ -30,7 +30,15 @@ public class ChatParser {
             String senderAddress = extractSenderAddress(content).trim();
             content = content.replace(senderAddress, "").trim();
 
-            chats.add(new Chat(senderName, sendDateTime,"", content, senderAddress));
+            chats.add(Chat.builder()
+                    .chatDate(chatDate)
+                    .senderName(senderName)
+                    .sendDateTime(sendDateTime)
+                    .content(content)
+                    .senderAddress(senderAddress)
+                    .status(ChatStatus.CREATED)
+                    .dueDate("")
+                    .build());
         }
         return chats;
     }

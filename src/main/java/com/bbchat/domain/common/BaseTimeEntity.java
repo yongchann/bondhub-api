@@ -1,4 +1,4 @@
-package com.bbchat.domain.entity;
+package com.bbchat.domain.common;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

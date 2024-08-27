@@ -1,7 +1,7 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.entity.BondAlias;
-import com.bbchat.domain.entity.BondIssuer;
+import com.bbchat.domain.bond.BondAlias;
+import com.bbchat.domain.bond.BondIssuer;
 import com.bbchat.repository.BondAliasRepository;
 import com.bbchat.service.dto.BondAliasDto;
 import com.bbchat.service.dto.BondIssuerDto;
