@@ -18,25 +18,25 @@ public class S3FileRepository {
 
     private final AmazonS3Client s3Client;
     private final static String BUCKET_NAME = "bbchat-bucket";
-    private final static String CHAT_FILE_KEY_PREFIX = "chat/";
-    private final static String TRANSACTION_FILE_KEY_PREFIX = "transaction/";
+    private final static String CHAT_FILE_KEY_PREFIX = "chat";
+    private final static String TRANSACTION_FILE_KEY_PREFIX = "transaction";
 
-    public void saveChatFile(String date, InputStream inputStream, String contentType) {
+    public void saveChatFile(String date, String fileName, InputStream inputStream, String contentType) {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType(contentType);
         metadata.setContentEncoding("UTF-8");
-        s3Client.putObject(BUCKET_NAME, CHAT_FILE_KEY_PREFIX + date, inputStream, metadata);
+        s3Client.putObject(BUCKET_NAME, buildPath(date, CHAT_FILE_KEY_PREFIX, fileName), inputStream, metadata);
     }
 
-    public void saveExcelFile(String date, InputStream inputStream, String contentType) {
+    public void saveExcelFile(String date, String fileName, InputStream inputStream, String contentType) {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType(contentType);
         metadata.setContentEncoding("UTF-8");
-        s3Client.putObject(BUCKET_NAME, TRANSACTION_FILE_KEY_PREFIX + date, inputStream, metadata);
+        s3Client.putObject(BUCKET_NAME, buildPath(date, TRANSACTION_FILE_KEY_PREFIX, fileName), inputStream, metadata);
     }
 
     public FileInfo getChatFileByDate(String date) {
-        S3Object object = s3Client.getObject(BUCKET_NAME, CHAT_FILE_KEY_PREFIX + date + "/ORIGINAL.txt");
+        S3Object object = s3Client.getObject(BUCKET_NAME, buildPath(date, CHAT_FILE_KEY_PREFIX, "ORIGINAL.txt"));
 
         long size = object.getObjectMetadata().getContentLength();
         String contentType = object.getObjectMetadata().getContentType();
@@ -56,7 +56,7 @@ public class S3FileRepository {
     }
 
     public FileInfo getTransactionFileByDate(String date) {
-        S3Object object = s3Client.getObject(BUCKET_NAME, TRANSACTION_FILE_KEY_PREFIX+date+"/ORIGINAL.xlsx");
+        S3Object object = s3Client.getObject(BUCKET_NAME, buildPath(date, TRANSACTION_FILE_KEY_PREFIX, "ORIGINAL.xlsx"));
         long size = object.getObjectMetadata().getContentLength();
         String contentType = object.getObjectMetadata().getContentType();
         InputStream inputStream = object.getObjectContent();
@@ -90,5 +90,9 @@ public class S3FileRepository {
             default:
                 return "";
         }
+    }
+
+    public String buildPath(String... paths) {
+        return String.join("/", paths);
     }
 }

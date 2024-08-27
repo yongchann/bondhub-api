@@ -20,7 +20,7 @@ public class UploadController {
     @PostMapping("/api/v1/upload/chat")
     public ResponseEntity<?> uploadChatFile(@RequestParam("date") String date, @RequestParam("file") MultipartFile file) {
         try {
-            fileRepository.saveChatFile(date+"/ORIGINAL.txt", file.getInputStream(), "text/plain; charset=UTF-8");
+            fileRepository.saveChatFile(date, "ORIGINAL.txt", file.getInputStream(), "text/plain; charset=UTF-8");
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -32,7 +32,7 @@ public class UploadController {
     @PostMapping("/api/v1/upload/transaction")
     public ResponseEntity<?> uploadTransactionFile(@RequestParam("date") String date, @RequestParam("file") MultipartFile file) {
         try {
-            fileRepository.saveExcelFile(date+"/ORIGINAL.xlsx", file.getInputStream(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            fileRepository.saveExcelFile(date, "ORIGINAL.xlsx", file.getInputStream(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
