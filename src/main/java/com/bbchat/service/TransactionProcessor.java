@@ -13,10 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,6 +24,7 @@ public class TransactionProcessor {
     private final BondClassifier bondClassifier;
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yy-MM-dd");
+    private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
 
     @Transactional
     public void processFromInputStream(String date, InputStream inputStream) {
@@ -137,7 +135,7 @@ public class TransactionProcessor {
             case NUMERIC:
                 if (DateUtil.isCellDateFormatted(cell)) {
                     Date date = cell.getDateCellValue();
-                    return DATE_FORMAT.format(date);
+                    return isTimeOnly(date) ? TIME_FORMAT.format(date) : DATE_FORMAT.format(date);
                 } else {
                     return String.valueOf(cell.getNumericCellValue());
                 }
@@ -146,8 +144,14 @@ public class TransactionProcessor {
             case FORMULA:
                 return cell.getCellFormula();
             default:
-                return null;
+                return "";
         }
+    }
+
+    private boolean isTimeOnly(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        return calendar.get(Calendar.YEAR) == 1899;
     }
 
 }
