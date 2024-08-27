@@ -46,7 +46,7 @@ public class BondInitializer {
                 bondAliasMap.forEach((issuerName, issuerData) -> {
                     BondIssuer bondIssuer = BondIssuer.builder()
                             .type(bondType)
-                            .grade(issuerData.getGrade())
+                            .grade(issuerData.getGrade() != null ? issuerData.getGrade() : "")
                             .name(issuerName)
                             .build();
                     bondIssuerRepository.save(bondIssuer);

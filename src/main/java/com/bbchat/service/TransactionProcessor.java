@@ -51,6 +51,18 @@ public class TransactionProcessor {
             log.warn("failed to extract bond from [%s]".formatted(tx.getBondName()));
             return;
         }
+
+        if (tx.getCreditRating() == null || !tx.getCreditRating().equals(bond.getBondIssuer().getGrade())) {
+            tx.setStatus(TransactionStatus.AMBIGUOUS_GRADE);
+            log.warn("different grade found between tx: %s(%s), bond(database): %s(%s)".formatted(
+                    tx.getBondName(),
+                    tx.getCreditRating() != null ? tx.getCreditRating() : "N/A",
+                    bond.getBondIssuer().getName(),
+                    bond.getBondIssuer().getGrade()
+            ));
+            return;
+        }
+
         tx.modifyStatusOk(bond);
     }
 
