@@ -5,6 +5,7 @@ import com.bbchat.domain.bond.BondIssuer;
 import com.bbchat.domain.bond.BondType;
 import com.bbchat.repository.BondAliasRepository;
 import com.bbchat.repository.BondIssuerRepository;
+import com.bbchat.service.dto.BondIssuerJson;
 import com.bbchat.service.event.BondAliasAddedEvent;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,15 +42,16 @@ public class BondInitializer {
 
         fileNameBondTypeMap.forEach((fileName, bondType) -> {
             try {
-                Map<String, List<String>> bondAliasMap = loadBondAliasFromJson(fileName);
-                bondAliasMap.forEach((issuerName, aliases)-> {
+                Map<String, BondIssuerJson> bondAliasMap = loadBondAliasFromJson(fileName);
+                bondAliasMap.forEach((issuerName, issuerData) -> {
                     BondIssuer bondIssuer = BondIssuer.builder()
                             .type(bondType)
+                            .grade(issuerData.getGrade())
                             .name(issuerName)
                             .build();
                     bondIssuerRepository.save(bondIssuer);
 
-                    List<BondAlias> bondAliases = aliases.stream().map(alias -> BondAlias.builder()
+                    List<BondAlias> bondAliases = issuerData.getAliases().stream().map(alias -> BondAlias.builder()
                             .bondIssuer(bondIssuer)
                             .name(alias)
                             .build()).toList();
@@ -66,7 +68,7 @@ public class BondInitializer {
 
     }
 
-    private Map<String, List<String>> loadBondAliasFromJson(String filePath) throws IOException {
+    private Map<String, BondIssuerJson> loadBondAliasFromJson(String filePath) throws IOException {
         ClassPathResource resource = new ClassPathResource(filePath);
         return objectMapper.readValue(resource.getInputStream(), new TypeReference<>() {});
     }
