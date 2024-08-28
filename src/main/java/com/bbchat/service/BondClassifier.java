@@ -19,7 +19,6 @@ import java.util.*;
 public class BondClassifier {
 
     private SortedMap<String, BondIssuer> aliasToIssuerMap;
-    private List<String> askKeywords = new ArrayList<>();
     private List<String> exclusionKeywords = new ArrayList<>();
 
     private final ExclusionKeywordRepository exclusionKeywordRepository;
@@ -68,10 +67,6 @@ public class BondClassifier {
             }
         }
         return null;
-    }
-
-    public List<String> getAskKeywords() {
-        return askKeywords;
     }
 
     public List<String> getExclusionKeywords() {
