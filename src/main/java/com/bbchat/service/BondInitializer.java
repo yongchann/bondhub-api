@@ -3,8 +3,10 @@ package com.bbchat.service;
 import com.bbchat.domain.bond.BondAlias;
 import com.bbchat.domain.bond.BondIssuer;
 import com.bbchat.domain.bond.BondType;
+import com.bbchat.domain.entity.ExclusionKeyword;
 import com.bbchat.repository.BondAliasRepository;
 import com.bbchat.repository.BondIssuerRepository;
+import com.bbchat.repository.ExclusionKeywordRepository;
 import com.bbchat.service.dto.BondIssuerJson;
 import com.bbchat.service.event.BondAliasAddedEvent;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -30,6 +32,7 @@ public class BondInitializer {
     private final ObjectMapper objectMapper;
     private final BondIssuerRepository bondIssuerRepository;
     private final BondAliasRepository bondAliasRepository;
+    private final ExclusionKeywordRepository exclusionKeywordRepository;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -64,6 +67,17 @@ public class BondInitializer {
                 throw new RuntimeException(e);
             }
         });
+
+        try {
+            List<String> keywordsJson = loadExclusionKeywordFromJson("exclusion_keyword.json");
+            List<ExclusionKeyword> exclusionKeywords = keywordsJson.stream().map(ExclusionKeyword::new).toList();
+            exclusionKeywordRepository.saveAll(exclusionKeywords);
+        } catch (IOException e) {
+            log.error("failed to register exclusion keywords");
+            throw new RuntimeException(e);
+        }
+
+
         eventPublisher.publishEvent(new BondAliasAddedEvent(this, "BondInitializer succeeded to update bond info"));
 
     }
@@ -73,4 +87,8 @@ public class BondInitializer {
         return objectMapper.readValue(resource.getInputStream(), new TypeReference<>() {});
     }
 
+    private List<String> loadExclusionKeywordFromJson(String filePath) throws IOException {
+        ClassPathResource resource = new ClassPathResource(filePath);
+        return objectMapper.readValue(resource.getInputStream(), new TypeReference<>() {});
+    }
 }

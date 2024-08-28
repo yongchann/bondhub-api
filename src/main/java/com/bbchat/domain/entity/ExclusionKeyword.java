@@ -17,4 +17,7 @@ public class ExclusionKeyword {
 
     private String name;
 
+    public ExclusionKeyword(String name) {
+        this.name = name;
+    }
 }
