@@ -1,6 +1,10 @@
 package com.bbchat.service;
 
+import com.bbchat.domain.aggregation.ChatAggregationResult;
+import com.bbchat.domain.aggregation.TransactionAggregationResult;
 import com.bbchat.domain.bond.Bond;
+import com.bbchat.domain.entity.Chat;
+import com.bbchat.domain.entity.ChatStatus;
 import com.bbchat.domain.transaction.DailyTransaction;
 import com.bbchat.domain.transaction.TransactionStatus;
 import com.bbchat.repository.DailyTransactionRepository;
@@ -14,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,7 +32,7 @@ public class TransactionProcessor {
     private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
 
     @Transactional
-    public void processFromInputStream(String date, InputStream inputStream) {
+    public TransactionAggregationResult aggregateFromInputStream(String date, InputStream inputStream) {
         dailyTransactionRepository.deleteAllByTransactionDate(date);
 
         List<DailyTransaction> allDailyTransactions = parseTransactions(inputStream);
@@ -41,7 +46,18 @@ public class TransactionProcessor {
                 })
                 .toList();
 
+        Map<TransactionStatus, Long> statusCounts = allDailyTransactions.stream()
+                .collect(Collectors.groupingBy(DailyTransaction::getStatus, Collectors.counting()));
+
         dailyTransactionRepository.saveAll(filteredTransactions);
+        return TransactionAggregationResult.builder()
+                .totalTransactionCount(allDailyTransactions.size())
+                .excludedTransactionCount(allDailyTransactions.size() - filteredTransactions.size())
+                .ambiguousGradeTransactionCount(statusCounts.get(TransactionStatus.AMBIGUOUS_GRADE))
+                .uncategorizedTransactionCount(statusCounts.get(TransactionStatus.UNCATEGORIZED))
+                .fullyProcessedTransactionCount(statusCounts.get(TransactionStatus.OK))
+                .build();
+
     }
 
     private void classify(DailyTransaction tx) {

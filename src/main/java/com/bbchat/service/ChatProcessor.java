@@ -1,11 +1,12 @@
 package com.bbchat.service;
 
+import com.bbchat.domain.ask.DailyAsk;
 import com.bbchat.domain.bond.Bond;
 import com.bbchat.domain.entity.Chat;
 import com.bbchat.domain.entity.ChatStatus;
-import com.bbchat.domain.ask.DailyAsk;
 import com.bbchat.repository.ChatRepository;
 import com.bbchat.repository.DailyAskRepository;
+import com.bbchat.domain.aggregation.ChatAggregationResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class ChatProcessor {
             "\r\n", " ");
 
     @Transactional
-    public void processFromRawContent(String date, String rawContentChat) {
+    public ChatAggregationResult aggregateFromRawContent(String date, String rawContentChat) {
         chatRepository.deleteAllByChatDate(date);
         dailyAskRepository.deleteAllByCreatedDate(date);
 
@@ -47,6 +48,18 @@ public class ChatProcessor {
                 .toList();
 
         transform(date, filteredChats);
+
+        Map<ChatStatus, Long> statusCounts = allChats.stream()
+                .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
+
+        return ChatAggregationResult.builder()
+                .totalChatCount(allChats.size())
+                .excludedChatCount(allChats.size() - filteredChats.size())
+                .notUsedChatCount(statusCounts.get(ChatStatus.NOT_USED))
+                .multiDueDateChatCount(statusCounts.get(ChatStatus.MULTI_DD))
+                .uncategorizedChatCount(statusCounts.get(ChatStatus.UNCATEGORIZED))
+                .fullyProcessedChatCount(statusCounts.get(ChatStatus.OK))
+                .build();
     }
 
     public void transform(String date, List<Chat> askChats) {
@@ -83,6 +96,7 @@ public class ChatProcessor {
                         .build();
 
                 chatDailyAskMap.put(chat, dailyAsk);
+                chat.setStatus(ChatStatus.OK);
             }
         }
         return chatDailyAskMap;
