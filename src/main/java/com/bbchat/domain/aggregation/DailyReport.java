@@ -4,7 +4,7 @@ import com.bbchat.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
@@ -27,4 +27,12 @@ public class DailyReport extends BaseTimeEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transaction_aggregation_id")
     private TransactionAggregation transactionAggregation;
+
+    public void updateChatAggregation(ChatAggregation aggregation) {
+        this.chatAggregation = aggregation;
+    }
+
+    public void updateTransactionAggregation(TransactionAggregation aggregation) {
+        this.transactionAggregation = aggregation;
+    }
 }

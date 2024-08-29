@@ -1,16 +1,15 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.aggregation.ChatAggregation;
-import com.bbchat.domain.aggregation.ChatAggregationResult;
-import com.bbchat.domain.aggregation.TransactionAggregation;
-import com.bbchat.domain.aggregation.TransactionAggregationResult;
+import com.bbchat.domain.aggregation.*;
 import com.bbchat.repository.ChatAggregationRepository;
+import com.bbchat.repository.DailyReportRepository;
 import com.bbchat.repository.TransactionAggregationRepository;
 import com.bbchat.service.exception.NotFoundAggregationException;
 import com.bbchat.support.FileInfo;
 import com.bbchat.support.S3FileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -23,7 +22,9 @@ public class AggregationService {
     private final TransactionProcessor transactionProcessor;
     private final ChatAggregationRepository chatAggregationRepository;
     private final TransactionAggregationRepository transactionAggregationRepository;
+    private final DailyReportRepository dailyReportRepository;
 
+    @Transactional
     public void aggregateChat(String date) {
         FileInfo file = fileRepository.getChatFileByDate(date);
 
@@ -33,8 +34,14 @@ public class AggregationService {
         ChatAggregationResult result = chatProcessor.aggregateFromRawContent(date, file.getContent());
         aggregation.update(LocalDateTime.now(), result);
         chatAggregationRepository.save(aggregation);
+
+        DailyReport dailyReport = dailyReportRepository.findByReportDate(date)
+                .orElse(new DailyReport());
+        dailyReport.updateChatAggregation(aggregation);
+        dailyReportRepository.save(dailyReport);
     }
 
+    @Transactional
     public void aggregateTransaction(String date) {
         FileInfo file = fileRepository.getTransactionFileByDate(date);
 
@@ -44,6 +51,10 @@ public class AggregationService {
         TransactionAggregationResult result = transactionProcessor.aggregateFromInputStream(date, file.getInputStream());
         aggregation.update(LocalDateTime.now(), result);
         transactionAggregationRepository.save(aggregation);
+
+        DailyReport dailyReport = dailyReportRepository.findByReportDate(date)
+                .orElse(new DailyReport());
+        dailyReport.updateTransactionAggregation(aggregation);
     }
 
     public ChatAggregationResult getChatAggregation(String date) {
