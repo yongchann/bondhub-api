@@ -62,6 +62,7 @@ public class ChatParser {
         date = date.replace('.', '-').replace('/', '-');
 
         String[] parts = date.split("-");
+        if (parts[0].length() == 2) parts[0] = "20" + parts[0];
         if (parts[1].length() == 1) parts[1] = "0" + parts[1];
         if (parts[2].length() == 1) parts[2] = "0" + parts[2];
 

@@ -111,7 +111,7 @@ public class ChatProcessor {
     }
 
     private String getYesterdayStr(String todayStr) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy-MM-dd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate today = LocalDate.parse(todayStr, formatter);
         LocalDate yesterday = today.minusDays(1);
         return yesterday.format(formatter);

@@ -28,7 +28,7 @@ public class TransactionProcessor {
     private final DailyTransactionRepository dailyTransactionRepository;
     private final BondClassifier bondClassifier;
 
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yy-MM-dd");
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
 
     @Transactional
