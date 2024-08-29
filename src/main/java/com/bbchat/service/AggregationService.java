@@ -6,11 +6,11 @@ import com.bbchat.domain.aggregation.TransactionAggregation;
 import com.bbchat.domain.aggregation.TransactionAggregationResult;
 import com.bbchat.repository.ChatAggregationRepository;
 import com.bbchat.repository.TransactionAggregationRepository;
+import com.bbchat.service.exception.NotFoundAggregationException;
 import com.bbchat.support.FileInfo;
 import com.bbchat.support.S3FileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -44,6 +44,20 @@ public class AggregationService {
         TransactionAggregationResult result = transactionProcessor.aggregateFromInputStream(date, file.getInputStream());
         aggregation.update(LocalDateTime.now(), result);
         transactionAggregationRepository.save(aggregation);
+    }
+
+    public ChatAggregationResult getChatAggregation(String date) {
+        ChatAggregation aggregation = chatAggregationRepository.findByChatDate(date)
+                .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + date));
+
+        return ChatAggregationResult.from(aggregation);
+    }
+
+    public TransactionAggregationResult getTransactionAggregation(String date) {
+        TransactionAggregation aggregation = transactionAggregationRepository.findByTransactionDate(date)
+                .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + date));
+
+        return TransactionAggregationResult.from(aggregation);
     }
 
 }

@@ -1,7 +1,9 @@
 package com.bbchat.controller.v1;
 
-import com.bbchat.service.dto.DailyAskSummary;
-import com.bbchat.service.dto.DailyTransactionSummary;
+import com.bbchat.controller.v1.response.ChatAggregationResponse;
+import com.bbchat.controller.v1.response.TransactionAggregationResponse;
+import com.bbchat.domain.aggregation.ChatAggregationResult;
+import com.bbchat.domain.aggregation.TransactionAggregationResult;
 import com.bbchat.service.AggregationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,35 +21,22 @@ public class AggregationController {
     public void aggregateDailyChat(@RequestParam("date") String date) {
         aggregationService.aggregateChat(date);
     }
-//
-//    @GetMapping("/api/v1/aggregation/chat")
-//    public DailyAskSummary getChatAggregation(
-//            @RequestParam("date") String date,
-//            @RequestParam(value = "startDueDate", required = false) String startDueDate,
-//            @RequestParam(value = "endDueDate", required = false) String endDueDate,
-//            @RequestParam(value = "bondType", required = false) String bondType,
-//            @RequestParam(value = "grade", required = false) String grade) {
-//
-//        DailyAskSummary summary = aggregationService.getAskSummary(date, startDueDate, endDueDate, bondType, grade);
-//        return summary;
-//    }
+
+    @GetMapping("/api/v1/aggregation/chat")
+    public ChatAggregationResponse getChatAggregation(@RequestParam("date") String date) {
+        ChatAggregationResult result = aggregationService.getChatAggregation(date);
+        return ChatAggregationResponse.from(result);
+    }
 
     @PostMapping("/api/v1/aggregation/transaction")
     public void aggregateDailyTransaction(@RequestParam("date") String date) {
         aggregationService.aggregateTransaction(date);
     }
 
-//    @GetMapping("/api/v1/aggregation/transaction")
-//    public DailyTransactionSummary getTransactionAggregation(
-//            @RequestParam("date") String date,
-//            @RequestParam(value = "startDueDate", required = false) String startDueDate,
-//            @RequestParam(value = "endDueDate", required = false) String endDueDate,
-//            @RequestParam(value = "bondType", required = false) String bondType,
-//            @RequestParam(value = "grade", required = false) String grade) {
-//
-//        DailyTransactionSummary summary = aggregationService.getTransactionSummary(date, startDueDate, endDueDate, bondType, grade);
-//        return summary;
-//    }
-
+    @GetMapping("/api/v1/aggregation/transaction")
+    public TransactionAggregationResponse getTransactionAggregation(@RequestParam("date") String date) {
+        TransactionAggregationResult result = aggregationService.getTransactionAggregation(date);
+        return TransactionAggregationResponse.from(result);
+    }
 
 }
