@@ -9,7 +9,7 @@ import lombok.*;
 @Builder
 @Getter
 @Entity
-public class DailyAggregation extends BaseTimeEntity {
+public class DailyReport extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
