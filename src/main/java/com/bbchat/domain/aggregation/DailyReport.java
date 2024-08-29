@@ -16,9 +16,9 @@ public class DailyReport extends BaseTimeEntity {
     @Column(name = "daily_aggregation_id")
     private Long id;
 
-    private boolean hasReported;
-
     private String reportFileLocation;
+
+    private String reportDate;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_aggregation_id")
