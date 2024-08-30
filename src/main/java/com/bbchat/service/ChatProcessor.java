@@ -1,20 +1,17 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.ask.DailyAsk;
+import com.bbchat.domain.aggregation.ChatAggregationResult;
 import com.bbchat.domain.bond.Bond;
 import com.bbchat.domain.entity.Chat;
 import com.bbchat.domain.entity.ChatStatus;
 import com.bbchat.repository.ChatRepository;
-import com.bbchat.repository.DailyAskRepository;
-import com.bbchat.domain.aggregation.ChatAggregationResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -26,7 +23,6 @@ public class ChatProcessor {
     private final BondClassifier bondClassifier;
     private final ChatRepository chatRepository;
 
-    private final DailyAskRepository dailyAskRepository;
     private final Map<String, String> replacementRules = Map.of(
             "[부국채영]368-9532", "([부국채영]368-9532])",
             "(DS투자증권 채권전략팀 02)709-2701)", "(DS투자증권 채권전략팀 02-709-2701)",
@@ -75,39 +71,12 @@ public class ChatProcessor {
                 .build();
     }
 
-    private void mapChatToDailyAsk(String date, List<Chat> filteredChats) {
-        for (Chat chat : filteredChats) {
-            if (chat.getStatus().equals(ChatStatus.SINGLE_DD)) {
-                Bond bond = bondClassifier.extractBond(chat.getContent(), chat.getDueDate());
-                if (bond == null) {
-                    chat.setStatus(ChatStatus.UNCATEGORIZED);
-                    log.warn("failed to extract bond from [%s]".formatted(chat.getContent()));
-                    continue;
-                }
-                chat.setStatus(ChatStatus.OK);
-                chat.setBond(bond);
-            }
-        }
-    }
-
     private boolean isSellingMessage(String content) {
         return content.contains("팔자");
     }
 
     private boolean isAllowedMessage(String content) {
         return bondClassifier.getExclusionKeywords().stream().noneMatch(content::contains);
-    }
-
-    private String getYesterdayStr(String todayStr) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate today = LocalDate.parse(todayStr, formatter);
-        LocalDate yesterday = today.minusDays(1);
-        return yesterday.format(formatter);
-    }
-
-    private int calculateConsecutiveDays(Bond bond, String today) {
-        Optional<DailyAsk> optionalDailyAsk = dailyAskRepository.findByBondAndDate(bond, getYesterdayStr(today));
-        return optionalDailyAsk.map(DailyAsk::getConsecutiveDays).orElse(0) + 1;
     }
 
     private String preprocess(String rawText) {

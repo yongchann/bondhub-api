@@ -1,6 +1,5 @@
 package com.bbchat.domain.entity;
 
-import com.bbchat.domain.ask.DailyAsk;
 import com.bbchat.domain.bond.Bond;
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,10 +32,6 @@ public class Chat {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bond_id")
     private Bond bond;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "daily_ask_id")
-    private DailyAsk dailyAsk;
 
     private String dueDate;
 
