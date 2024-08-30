@@ -2,7 +2,7 @@ package com.bbchat.service;
 
 import com.bbchat.domain.MaturityCondition;
 import com.bbchat.domain.bond.Bond;
-import com.bbchat.domain.entity.Chat;
+import com.bbchat.domain.chat.Chat;
 import com.bbchat.repository.ChatRepository;
 import com.bbchat.service.dto.BondChatDto;
 import com.bbchat.service.dto.ChatDto;

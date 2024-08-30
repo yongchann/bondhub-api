@@ -1,4 +1,4 @@
-package com.bbchat.domain.entity;
+package com.bbchat.domain.chat;
 
 import com.bbchat.domain.bond.Bond;
 import jakarta.persistence.*;

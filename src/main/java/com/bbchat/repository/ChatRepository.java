@@ -1,6 +1,6 @@
 package com.bbchat.repository;
 
-import com.bbchat.domain.entity.Chat;
+import com.bbchat.domain.chat.Chat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

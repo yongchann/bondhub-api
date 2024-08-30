@@ -1,6 +1,6 @@
 package com.bbchat.repository;
 
-import com.bbchat.domain.aggregation.DailyReport;
+import com.bbchat.domain.report.DailyReport;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

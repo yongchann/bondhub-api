@@ -1,6 +1,6 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.aggregation.DailyReport;
+import com.bbchat.domain.report.DailyReport;
 import com.bbchat.repository.DailyReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,7 @@
 package com.bbchat.service;
 
 import com.bbchat.domain.aggregation.*;
+import com.bbchat.domain.report.DailyReport;
 import com.bbchat.repository.ChatAggregationRepository;
 import com.bbchat.repository.DailyReportRepository;
 import com.bbchat.repository.TransactionAggregationRepository;

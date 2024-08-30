@@ -1,5 +1,7 @@
-package com.bbchat.domain.aggregation;
+package com.bbchat.domain.report;
 
+import com.bbchat.domain.aggregation.ChatAggregation;
+import com.bbchat.domain.aggregation.TransactionAggregation;
 import com.bbchat.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;

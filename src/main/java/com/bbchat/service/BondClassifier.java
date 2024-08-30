@@ -3,7 +3,7 @@ package com.bbchat.service;
 import com.bbchat.domain.bond.Bond;
 import com.bbchat.domain.bond.BondAlias;
 import com.bbchat.domain.bond.BondIssuer;
-import com.bbchat.domain.entity.ExclusionKeyword;
+import com.bbchat.domain.chat.ExclusionKeyword;
 import com.bbchat.repository.BondAliasRepository;
 import com.bbchat.repository.BondRepository;
 import com.bbchat.repository.ExclusionKeywordRepository;

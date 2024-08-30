@@ -1,7 +1,7 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.entity.Chat;
-import com.bbchat.domain.entity.ChatStatus;
+import com.bbchat.domain.chat.Chat;
+import com.bbchat.domain.chat.ChatStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

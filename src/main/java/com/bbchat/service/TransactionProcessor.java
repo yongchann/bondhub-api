@@ -1,10 +1,7 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.aggregation.ChatAggregationResult;
 import com.bbchat.domain.aggregation.TransactionAggregationResult;
 import com.bbchat.domain.bond.Bond;
-import com.bbchat.domain.entity.Chat;
-import com.bbchat.domain.entity.ChatStatus;
 import com.bbchat.domain.transaction.DailyTransaction;
 import com.bbchat.domain.transaction.TransactionStatus;
 import com.bbchat.repository.DailyTransactionRepository;
