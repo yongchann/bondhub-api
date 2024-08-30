@@ -8,6 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.util.List;
+import java.util.Optional;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -24,9 +27,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NotFoundAggregationException.class)
-    public ResponseEntity<ErrorResponse> handleNotFoundAggregationException(NotFoundAggregationException ex) {
-        ErrorResponse error = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    public ResponseEntity<?> handleNotFoundAggregationException(NotFoundAggregationException ex) {
+        ErrorResponse error = new ErrorResponse(HttpStatus.OK.value(), ex.getMessage());
+        return ResponseEntity.of(Optional.of(List.of()));
     }
 
     @JsonSerialize
