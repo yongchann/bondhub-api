@@ -3,7 +3,6 @@ package com.bbchat.support;
 import com.bbchat.service.exception.IllegalFileNameException;
 import org.springframework.stereotype.Component;
 
-import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -13,13 +12,13 @@ import java.util.List;
 @Component
 public class FileValidator {
 
-    private static final List<String> ALLOWED_CHAT_FILE_PREFIX = Arrays.asList("채권_블커본드", "채권_레드본드", "채권_막무가내");
-    private static final List<String> ALLOWED_TRANSACTION_FILE_PREFIX = Arrays.asList("거래내역");
+    private static final List<String> ALLOWED_CHAT_FILE_PREFIX = List.of("BB", "RB", "MM");
+    private static final List<String> ALLOWED_TRANSACTION_FILE_PREFIX = Arrays.asList("TX");
 
     public FileInfo checkChatFileName(String fileName) {
         for (String prefix : ALLOWED_CHAT_FILE_PREFIX) {
             if (fileName.startsWith(prefix)) {
-                return parseChatFileName(fileName);
+                return parseChatFileName(fileName, prefix);
             }
         }
         throw new IllegalFileNameException(fileName);
@@ -45,10 +44,9 @@ public class FileValidator {
         }
     }
 
-    public FileInfo parseChatFileName(String fileName) {
+    public FileInfo parseChatFileName(String fileName, String prefix) {
         String[] split = fileName.split("_");
 
-        String roomType = split[1];
         String dateString = split[2];
 
         try {
@@ -60,22 +58,11 @@ public class FileValidator {
             return FileInfo.builder()
                     .filename(fileName)
                     .fileNameDate(formattedDate)
-                    .fileNamePrefix(convertPrefix(roomType))
+                    .fileNamePrefix(prefix)
                     .build();
         } catch (ParseException e) {
             throw new IllegalFileNameException(fileName);
         }
-    }
-
-    private String convertPrefix(String prefix) {
-        String normalizedPrefix = Normalizer.normalize(prefix, Normalizer.Form.NFC);
-
-        return switch (normalizedPrefix) {
-            case "블커본드" -> "BB";
-            case "례드본드" -> "RB";
-            case "막무가내" -> "MM";
-            default -> throw new IllegalFileNameException(prefix);
-        };
     }
 
 }
