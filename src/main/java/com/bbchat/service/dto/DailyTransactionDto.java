@@ -11,11 +11,11 @@ import java.util.List;
 @Getter
 public class DailyTransactionDto {
 
+    private Long id;
+
     private String bondName;
 
     private String dueDate;
-
-    private int consecutiveDays;
 
     private List<DailyTransactionDetailDto> details;
 }

@@ -2,6 +2,7 @@ package com.bbchat.repository;
 
 import com.bbchat.domain.bond.Bond;
 import com.bbchat.domain.transaction.DailyTransaction;
+import com.bbchat.domain.transaction.TransactionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -20,4 +21,7 @@ public interface DailyTransactionRepository extends JpaRepository<DailyTransacti
             "JOIN FETCH b.bondIssuer bi " +
             "WHERE dt.transactionDate = :transactionDate")
     List<DailyTransaction> findByCreatedDate(String transactionDate);
+
+    List<DailyTransaction> findByTransactionDateAndStatus(String transactionDate, TransactionStatus status);
+
 }

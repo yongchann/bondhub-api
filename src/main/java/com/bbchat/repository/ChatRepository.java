@@ -1,6 +1,7 @@
 package com.bbchat.repository;
 
 import com.bbchat.domain.chat.Chat;
+import com.bbchat.domain.chat.ChatStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,6 +26,8 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
             @Param("endDueDate") String endDueDate,
             @Param("grades") List<String> grades
     );
+
+    List<Chat> findByChatDateAndRoomTypeAndStatus(String chatDate, String roomType, ChatStatus status);
 
 }
 
