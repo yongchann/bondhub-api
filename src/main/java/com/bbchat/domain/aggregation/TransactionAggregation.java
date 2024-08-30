@@ -1,9 +1,8 @@
 package com.bbchat.domain.aggregation;
 
+import com.bbchat.domain.report.DailyReport;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -17,33 +16,13 @@ public class TransactionAggregation {
     @Column(name = "transaction_aggregation_id")
     private Long id;
 
-    private String fileName;
-
     private String transactionDate;
 
-    private LocalDateTime lastAggregatedDateTime;
+    @Embedded
+    private TransactionAggregationResult result;
 
-    private long totalTransactionCount;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "daily_report_id")
+    private DailyReport dailyReport;
 
-    private long ambiguousGradeTransactionCount;
-
-    private long excludedTransactionCount;
-
-    private long uncategorizedTransactionCount;
-
-    private long fullyProcessedTransactionCount;
-
-    public TransactionAggregation(String fileName, String transactionDate) {
-        this.fileName = fileName;
-        this.transactionDate = transactionDate;
-    }
-
-    public void update(LocalDateTime updateDateTime, TransactionAggregationResult result) {
-        this.lastAggregatedDateTime = updateDateTime;
-        this.totalTransactionCount = result.getTotalTransactionCount();
-        this.ambiguousGradeTransactionCount = result.getAmbiguousGradeTransactionCount();
-        this.excludedTransactionCount = result.getExcludedTransactionCount();
-        this.uncategorizedTransactionCount = result.getUncategorizedTransactionCount();
-        this.fullyProcessedTransactionCount = result.getFullyProcessedTransactionCount();
-    }
 }

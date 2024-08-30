@@ -1,7 +1,11 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.aggregation.*;
+import com.bbchat.domain.aggregation.ChatAggregation;
+import com.bbchat.domain.aggregation.ChatAggregationResult;
+import com.bbchat.domain.aggregation.TransactionAggregation;
+import com.bbchat.domain.aggregation.TransactionAggregationResult;
 import com.bbchat.domain.report.DailyReport;
+import com.bbchat.domain.report.ReportStatus;
 import com.bbchat.repository.ChatAggregationRepository;
 import com.bbchat.repository.DailyReportRepository;
 import com.bbchat.repository.TransactionAggregationRepository;
@@ -11,8 +15,6 @@ import com.bbchat.support.S3FileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 import static com.bbchat.service.UploadService.*;
 import static com.bbchat.support.S3FileRepository.buildPath;
@@ -35,17 +37,22 @@ public class AggregationService {
         String filePath = buildPath(CHAT_FILE_KEY_PREFIX, date, roomType);
         FileInfo file = fileRepository.get(filePath, CHAT_FILE_SAVE_NAME);
 
-        ChatAggregation aggregation = chatAggregationRepository.findByChatDateAndRoomType(date, roomType)
-                .orElse(new ChatAggregation(file.getFilename(), date, roomType));
-
+        // 집계
         ChatAggregationResult result = chatProcessor.aggregateFromRawContent(date, file.getContent(), roomType);
-        aggregation.update(LocalDateTime.now(), result);
-        chatAggregationRepository.save(aggregation);
 
-        DailyReport dailyReport = dailyReportRepository.findByReportDate(date)
-                .orElse(new DailyReport());
-        dailyReport.updateChatAggregation(aggregation);
-        dailyReportRepository.save(dailyReport);
+        // 조회 및 생성(영속화)
+        DailyReport dailyReport = dailyReportRepository.findByReportDateAndStatus(date, ReportStatus.READY)
+                .orElseGet(() -> dailyReportRepository.save(DailyReport.ready(date)));
+
+        // 집계 결과를 토대로 ChatAggregation 생성
+        ChatAggregation aggregation = ChatAggregation.builder()
+                .chatDate(date)
+                .roomType(roomType)
+                .result(result)
+                .dailyReport(dailyReport)
+                .build();
+
+        chatAggregationRepository.save(aggregation);
     }
 
     @Transactional
@@ -53,17 +60,21 @@ public class AggregationService {
         String filePath = buildPath(TRANSACTION_FILE_KEY_PREFIX, date);
         FileInfo file = fileRepository.get(filePath, TRANSACTION_FILE_SAVE_NAME);
 
-        TransactionAggregation aggregation = transactionAggregationRepository.findByTransactionDate(date)
-                .orElse(new TransactionAggregation(file.getFilename(), date));
-
+        // 집계
         TransactionAggregationResult result = transactionProcessor.aggregateFromInputStream(date, file.getInputStream());
-        aggregation.update(LocalDateTime.now(), result);
-        transactionAggregationRepository.save(aggregation);
 
-        DailyReport dailyReport = dailyReportRepository.findByReportDate(date)
-                .orElse(new DailyReport());
-        dailyReport.updateTransactionAggregation(aggregation);
-        dailyReportRepository.save(dailyReport);
+        // 조회 및 생성(영속화)
+        DailyReport dailyReport = dailyReportRepository.findByReportDateAndStatus(date, ReportStatus.READY)
+                .orElseGet(() -> dailyReportRepository.save(DailyReport.ready(date)));
+
+        // 집계 결과를 토대로 TransactionAggregation 생성
+        TransactionAggregation aggregation = TransactionAggregation.builder()
+                .transactionDate(date)
+                .result(result)
+                .dailyReport(dailyReport)
+                .build();
+
+        transactionAggregationRepository.save(aggregation);
     }
 
     public ChatAggregationResult getChatAggregation(String date,String roomType) {

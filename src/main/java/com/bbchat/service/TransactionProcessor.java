@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,6 +49,7 @@ public class TransactionProcessor {
 
         dailyTransactionRepository.saveAll(filteredTransactions);
         return TransactionAggregationResult.builder()
+                .aggregatedDateTime(LocalDateTime.now())
                 .totalTransactionCount(allDailyTransactions.size())
                 .excludedTransactionCount(allDailyTransactions.size() - filteredTransactions.size())
                 .ambiguousGradeTransactionCount(statusCounts.get(TransactionStatus.AMBIGUOUS_GRADE))

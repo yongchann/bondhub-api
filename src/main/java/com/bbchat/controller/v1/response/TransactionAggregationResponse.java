@@ -28,8 +28,7 @@ public class TransactionAggregationResponse {
 
     public static TransactionAggregationResponse from(TransactionAggregationResult result) {
         return TransactionAggregationResponse.builder()
-                .fileName(result.getFileName())
-                .lastAggregatedDateTime(result.getLastAggregatedDateTime())
+                .lastAggregatedDateTime(result.getAggregatedDateTime())
                 .totalTransactionCount(result.getTotalTransactionCount())
                 .excludedTransactionCount(result.getExcludedTransactionCount())
                 .fullyProcessedTransactionCount(result.getFullyProcessedTransactionCount())

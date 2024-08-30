@@ -1,10 +1,11 @@
 package com.bbchat.domain.report;
 
-import com.bbchat.domain.aggregation.ChatAggregation;
-import com.bbchat.domain.aggregation.TransactionAggregation;
 import com.bbchat.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,19 +23,15 @@ public class DailyReport extends BaseTimeEntity {
 
     private String reportDate;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chat_aggregation_id")
-    private ChatAggregation chatAggregation;
+    @Enumerated(EnumType.STRING)
+    private ReportStatus status;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transaction_aggregation_id")
-    private TransactionAggregation transactionAggregation;
-
-    public void updateChatAggregation(ChatAggregation aggregation) {
-        this.chatAggregation = aggregation;
+    private DailyReport(String reportDate, ReportStatus status) {
+        this.reportDate = reportDate;
+        this.status = status;
     }
 
-    public void updateTransactionAggregation(TransactionAggregation aggregation) {
-        this.transactionAggregation = aggregation;
+    public static DailyReport ready(String reportDate) {
+        return new DailyReport(reportDate, ReportStatus.READY);
     }
 }

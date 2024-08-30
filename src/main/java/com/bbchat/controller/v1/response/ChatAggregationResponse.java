@@ -12,8 +12,6 @@ import java.time.LocalDateTime;
 @Getter
 public class ChatAggregationResponse {
 
-    private String fileName;
-
     private LocalDateTime lastAggregatedDateTime;
 
     private long totalChatCount;
@@ -30,8 +28,7 @@ public class ChatAggregationResponse {
 
     public static ChatAggregationResponse from(ChatAggregationResult result) {
         return ChatAggregationResponse.builder()
-                .fileName(result.getFileName())
-                .lastAggregatedDateTime(result.getLastAggregatedDateTime())
+                .lastAggregatedDateTime(result.getAggregatedDateTime())
                 .totalChatCount(result.getTotalChatCount())
                 .excludedChatCount(result.getExcludedChatCount())
                 .notContainDueDateChatCount(result.getNotUsedChatCount())

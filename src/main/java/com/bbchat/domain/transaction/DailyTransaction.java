@@ -16,7 +16,7 @@ public class DailyTransaction {
     @Column(name = "daily_transaction_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "bond_id")
     private Bond bond;
 

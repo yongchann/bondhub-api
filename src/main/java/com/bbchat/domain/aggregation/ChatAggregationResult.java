@@ -11,9 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ChatAggregationResult {
 
-    private String fileName;
-
-    private LocalDateTime lastAggregatedDateTime;
+    private LocalDateTime aggregatedDateTime;
 
     private long totalChatCount;
 
@@ -27,16 +25,15 @@ public class ChatAggregationResult {
 
     private long fullyProcessedChatCount;
 
-    public static ChatAggregationResult from(ChatAggregation aggregation) {
+    public static ChatAggregationResult from(ChatAggregation entity) {
         return ChatAggregationResult.builder()
-                .fileName(aggregation.getFileName())
-                .lastAggregatedDateTime(aggregation.getLastAggregatedDateTime())
-                .totalChatCount(aggregation.getTotalChatCount())
-                .notUsedChatCount(aggregation.getNotUsedChatCount())
-                .excludedChatCount(aggregation.getExcludedChatCount())
-                .multiDueDateChatCount(aggregation.getMultiDueDateChatCount())
-                .uncategorizedChatCount(aggregation.getUncategorizedChatCount())
-                .fullyProcessedChatCount(aggregation.getFullyProcessedChatCount())
+                .aggregatedDateTime(entity.getResult().getAggregatedDateTime())
+                .totalChatCount(entity.getResult().getTotalChatCount())
+                .notUsedChatCount(entity.getResult().getNotUsedChatCount())
+                .excludedChatCount(entity.getResult().getExcludedChatCount())
+                .multiDueDateChatCount(entity.getResult().getMultiDueDateChatCount())
+                .uncategorizedChatCount(entity.getResult().getUncategorizedChatCount())
+                .fullyProcessedChatCount(entity.getResult().getFullyProcessedChatCount())
                 .build();
     }
 }

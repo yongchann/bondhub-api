@@ -11,9 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class TransactionAggregationResult {
 
-    private String fileName;
-
-    private LocalDateTime lastAggregatedDateTime;
+    private LocalDateTime aggregatedDateTime;
 
     private long totalTransactionCount;
 
@@ -25,15 +23,14 @@ public class TransactionAggregationResult {
 
     private long fullyProcessedTransactionCount;
 
-    public static TransactionAggregationResult from(TransactionAggregation aggregation) {
+    public static TransactionAggregationResult from(TransactionAggregation entity) {
         return TransactionAggregationResult.builder()
-                .fileName(aggregation.getFileName())
-                .lastAggregatedDateTime(aggregation.getLastAggregatedDateTime())
-                .totalTransactionCount(aggregation.getTotalTransactionCount())
-                .excludedTransactionCount(aggregation.getExcludedTransactionCount())
-                .fullyProcessedTransactionCount(aggregation.getFullyProcessedTransactionCount())
-                .ambiguousGradeTransactionCount(aggregation.getAmbiguousGradeTransactionCount())
-                .uncategorizedTransactionCount(aggregation.getUncategorizedTransactionCount())
+                .aggregatedDateTime(entity.getResult().getAggregatedDateTime())
+                .totalTransactionCount(entity.getResult().getTotalTransactionCount())
+                .excludedTransactionCount(entity.getResult().getExcludedTransactionCount())
+                .fullyProcessedTransactionCount(entity.getResult().getFullyProcessedTransactionCount())
+                .ambiguousGradeTransactionCount(entity.getResult().getAmbiguousGradeTransactionCount())
+                .uncategorizedTransactionCount(entity.getResult().getUncategorizedTransactionCount())
                 .build();
     }
 }

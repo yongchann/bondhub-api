@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -62,6 +63,7 @@ public class ChatProcessor {
                 .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
 
         return ChatAggregationResult.builder()
+                .aggregatedDateTime(LocalDateTime.now())
                 .totalChatCount(allChats.size())
                 .excludedChatCount(allChats.size() - filteredChats.size())
                 .notUsedChatCount(statusCounts.get(ChatStatus.NOT_USED))

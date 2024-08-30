@@ -1,6 +1,7 @@
 package com.bbchat.repository;
 
 import com.bbchat.domain.report.DailyReport;
+import com.bbchat.domain.report.ReportStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -14,5 +15,5 @@ public interface DailyReportRepository extends JpaRepository<DailyReport, Long> 
             "AND dr.reportDate is not null")
     List<DailyReport> findReport(String from, String to);
 
-    Optional<DailyReport> findByReportDate(String reportDate);
+    Optional<DailyReport> findByReportDateAndStatus(String reportDate, ReportStatus status);
 }
