@@ -33,7 +33,7 @@ public class FileValidator {
         if (parts.length < 2) {
             throw new IllegalFileNameException(fileName);
         }
-        String dateString = parts[1];
+        String dateString = parts[1].split("\\.")[0];
         try {
             SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMdd");
             SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");

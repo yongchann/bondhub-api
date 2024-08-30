@@ -29,7 +29,7 @@ public class UploadService {
         }
 
         String filePath = fileRepository.buildPath(CHAT_FILE_KEY_PREFIX, fileInfo.getFileNameDate(), fileInfo.getFileNamePrefix());
-        fileRepository.save(filePath, "chat.txt", inputStream, "text/plain; charset=UTF-8");
+        fileRepository.save(filePath, "chat.txt", inputStream, "text/plain; charset=UTF-8", "chat");
     }
 
     public void uploadTransactionFile(String uploadDate, String fileName, InputStream inputStream) {
@@ -39,7 +39,7 @@ public class UploadService {
         }
 
         String filePath = fileRepository.buildPath(TRANSACTION_FILE_KEY_PREFIX, dateFromFileName);
-        fileRepository.save(filePath, "transaction.xlsx", inputStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        fileRepository.save(filePath, "transaction.xlsx", inputStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "transaction");
     }
 
 }

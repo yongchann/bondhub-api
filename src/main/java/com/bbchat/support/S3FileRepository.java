@@ -17,10 +17,11 @@ public class S3FileRepository {
     private final AmazonS3Client s3Client;
     private final static String BUCKET_NAME = "bbchat-bucket";
 
-    public void save(String filePath, String fileName, InputStream inputStream, String contentType) {
+    public void save(String filePath, String fileName, InputStream inputStream, String contentType, String type) {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType(contentType);
         metadata.setContentEncoding("UTF-8");
+        metadata.addUserMetadata("type", type);
 
         String objectKey = filePath + "/" + fileName;
         s3Client.putObject(BUCKET_NAME, objectKey, inputStream, metadata);
@@ -32,13 +33,24 @@ public class S3FileRepository {
 
         long size = object.getObjectMetadata().getContentLength();
         String contentType = object.getObjectMetadata().getContentType();
-        String content = null;
-        InputStream inputStream = object.getObjectContent();
+        String content = "";
+        InputStream inputStream = null;
 
-        try {
-            content = IOUtils.toString(object.getObjectContent());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        String type = object.getObjectMetadata().getUserMetadata().get("type");
+        if (type == null) {
+            throw new IllegalStateException("empty s3 file metadata");
+        }
+
+        if (type.equals("chat")) {
+            try {
+                content = IOUtils.toString(object.getObjectContent());
+            } catch (IOException e) {
+                throw new IllegalStateException("failed to read file content");
+            }
+        } else if (type.equals("transaction")) {
+            inputStream = object.getObjectContent();
+        } else {
+            throw new IllegalStateException("invalid s3 file metadata");
         }
 
         return FileInfo.builder()
@@ -49,41 +61,7 @@ public class S3FileRepository {
                 .content(content)
                 .build();
     }
-//
-//    public FileInfo getChatFileByDate(String date) {
-//        S3Object object = s3Client.getObject(BUCKET_NAME, buildPath(date, CHAT_FILE_KEY_PREFIX, "ORIGINAL.txt"));
-//
-//        long size = object.getObjectMetadata().getContentLength();
-//        String contentType = object.getObjectMetadata().getContentType();
-//        String content = null;
-//        try {
-//            content = IOUtils.toString(object.getObjectContent());
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//        return FileInfo.builder()
-//                .filename(date)
-//                .size(size)
-//                .contentType(contentType)
-//                .content(content)
-//                .build();
-//    }
-//
-//    public FileInfo getTransactionFileByDate(String date,) {
-//        S3Object object = s3Client.getObject(BUCKET_NAME, buildPath(date, TRANSACTION_FILE_KEY_PREFIX, "ORIGINAL.xlsx"));
-//        long size = object.getObjectMetadata().getContentLength();
-//        String contentType = object.getObjectMetadata().getContentType();
-//        InputStream inputStream = object.getObjectContent();
-//
-//        return FileInfo.builder()
-//                .filename(date)
-//                .size(size)
-//                .contentType(contentType)
-//                .content("")
-//                .inputStream(inputStream)
-//                .build();
-//    }
+
     public static String buildPath(String... paths) {
         return String.join("/", paths);
     }
