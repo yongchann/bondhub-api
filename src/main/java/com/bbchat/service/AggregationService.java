@@ -13,25 +13,31 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+import static com.bbchat.service.UploadService.*;
+import static com.bbchat.support.S3FileRepository.buildPath;
+
 @RequiredArgsConstructor
 @Service
 public class AggregationService {
 
     private final S3FileRepository fileRepository;
     private final ChatProcessor chatProcessor;
-    private final TransactionProcessor transactionProcessor;
     private final ChatAggregationRepository chatAggregationRepository;
+
+    private final TransactionProcessor transactionProcessor;
     private final TransactionAggregationRepository transactionAggregationRepository;
+
     private final DailyReportRepository dailyReportRepository;
 
     @Transactional
-    public void aggregateChat(String date) {
-        FileInfo file = fileRepository.getChatFileByDate(date);
+    public void aggregateChat(String date, String roomType) {
+        String filePath = buildPath(CHAT_FILE_KEY_PREFIX, date, roomType);
+        FileInfo file = fileRepository.get(filePath, CHAT_FILE_SAVE_NAME);
 
-        ChatAggregation aggregation = chatAggregationRepository.findByChatDate(date)
-                .orElse(new ChatAggregation(file.getFilename(), date));
+        ChatAggregation aggregation = chatAggregationRepository.findByChatDateAndRoomType(date, roomType)
+                .orElse(new ChatAggregation(file.getFilename(), date, roomType));
 
-        ChatAggregationResult result = chatProcessor.aggregateFromRawContent(date, file.getContent());
+        ChatAggregationResult result = chatProcessor.aggregateFromRawContent(date, file.getContent(), roomType);
         aggregation.update(LocalDateTime.now(), result);
         chatAggregationRepository.save(aggregation);
 
@@ -43,7 +49,8 @@ public class AggregationService {
 
     @Transactional
     public void aggregateTransaction(String date) {
-        FileInfo file = fileRepository.getTransactionFileByDate(date);
+        String filePath = buildPath(TRANSACTION_FILE_KEY_PREFIX, date);
+        FileInfo file = fileRepository.get(filePath, TRANSACTION_FILE_SAVE_NAME);
 
         TransactionAggregation aggregation = transactionAggregationRepository.findByTransactionDate(date)
                 .orElse(new TransactionAggregation(file.getFilename(), date));
@@ -55,10 +62,11 @@ public class AggregationService {
         DailyReport dailyReport = dailyReportRepository.findByReportDate(date)
                 .orElse(new DailyReport());
         dailyReport.updateTransactionAggregation(aggregation);
+        dailyReportRepository.save(dailyReport);
     }
 
-    public ChatAggregationResult getChatAggregation(String date) {
-        ChatAggregation aggregation = chatAggregationRepository.findByChatDate(date)
+    public ChatAggregationResult getChatAggregation(String date,String roomType) {
+        ChatAggregation aggregation = chatAggregationRepository.findByChatDateAndRoomType(date, roomType)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + date));
 
         return ChatAggregationResult.from(aggregation);

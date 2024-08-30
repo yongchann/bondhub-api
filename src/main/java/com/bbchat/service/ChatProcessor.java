@@ -35,19 +35,32 @@ public class ChatProcessor {
             "\r\n", " ");
 
     @Transactional
-    public ChatAggregationResult aggregateFromRawContent(String date, String rawContentChat) {
-        chatRepository.deleteAllByChatDate(date);
-        dailyAskRepository.deleteAllByCreatedDate(date);
+    public ChatAggregationResult aggregateFromRawContent(String date, String rawContentChat, String roomType) {
+        chatRepository.deleteAllByChatDateAndRoomType(date,roomType);
 
-        List<Chat> allChats = chatParser.parseChatsFromRawText(date, preprocess(rawContentChat));
+        List<Chat> allChats = chatParser.parseChatsFromRawText(date, preprocess(rawContentChat), roomType);
 
         List<Chat> filteredChats = allChats.stream()
                 .filter(chat -> isSellingMessage(chat.getContent()))
                 .filter(chat -> isAllowedMessage(chat.getContent())) // TODO 국고채도 집계하고자 하는 경우 수정 필요
                 .peek(chat -> chat.modifyStatusByDueDate(chatParser.extractDueDates(chat.getContent())))
                 .toList();
+        chatRepository.saveAll(filteredChats);
 
-        transform(date, filteredChats);
+        List<Chat> singleDueDateChats = filteredChats.stream()
+                .filter(chat -> chat.getStatus().equals(ChatStatus.SINGLE_DD))
+                .toList();
+
+        singleDueDateChats.forEach(chat -> {
+            Bond bond = bondClassifier.extractBond(chat.getContent(), chat.getDueDate());
+            if (bond == null) {
+                chat.setStatus(ChatStatus.UNCATEGORIZED);
+                log.warn("failed to extract bond from [%s]".formatted(chat.getContent()));
+            } else {
+                chat.setStatus(ChatStatus.OK);
+                chat.setBond(bond);
+            }
+        });
 
         Map<ChatStatus, Long> statusCounts = allChats.stream()
                 .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
@@ -62,25 +75,7 @@ public class ChatProcessor {
                 .build();
     }
 
-    public void transform(String date, List<Chat> askChats) {
-        Map<Chat, DailyAsk> chatDailyAskMap = mapChatToDailyAsk(date, askChats);
-        Set<DailyAsk> dailyAsks = new HashSet<>(chatDailyAskMap.values());
-        List<DailyAsk> persistedDailyAsks = dailyAskRepository.saveAll(new ArrayList<>(dailyAsks));
-
-        Map<String, DailyAsk> dailyAskMap = persistedDailyAsks.stream()
-                .collect(Collectors.toMap(da -> da.getBond().getId() + da.getCreatedDate(), da -> da));
-
-        for (Chat chat : chatDailyAskMap.keySet()) {
-            DailyAsk originalDailyAsk = chatDailyAskMap.get(chat);
-            String key = originalDailyAsk.getBond().getId() + originalDailyAsk.getCreatedDate();
-            chat.setDailyAsk(dailyAskMap.get(key));
-        }
-
-        chatRepository.saveAll(chatDailyAskMap.keySet());
-    }
-
-    private Map<Chat, DailyAsk> mapChatToDailyAsk(String date, List<Chat> filteredChats) {
-        Map<Chat, DailyAsk> chatDailyAskMap = new HashMap<>();
+    private void mapChatToDailyAsk(String date, List<Chat> filteredChats) {
         for (Chat chat : filteredChats) {
             if (chat.getStatus().equals(ChatStatus.SINGLE_DD)) {
                 Bond bond = bondClassifier.extractBond(chat.getContent(), chat.getDueDate());
@@ -89,17 +84,10 @@ public class ChatProcessor {
                     log.warn("failed to extract bond from [%s]".formatted(chat.getContent()));
                     continue;
                 }
-                DailyAsk dailyAsk = DailyAsk.builder()
-                        .bond(bond)
-                        .createdDate(date)
-                        .consecutiveDays(calculateConsecutiveDays(bond, date))
-                        .build();
-
-                chatDailyAskMap.put(chat, dailyAsk);
                 chat.setStatus(ChatStatus.OK);
+                chat.setBond(bond);
             }
         }
-        return chatDailyAskMap;
     }
 
     private boolean isSellingMessage(String content) {

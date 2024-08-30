@@ -21,6 +21,8 @@ public class ChatAggregation {
 
     private String chatDate;
 
+    private String roomType;
+
     private LocalDateTime lastAggregatedDateTime;
 
     private long totalChatCount;
@@ -35,9 +37,10 @@ public class ChatAggregation {
 
     private long fullyProcessedChatCount;
 
-    public ChatAggregation(String fileName, String chatDate) {
+    public ChatAggregation(String fileName, String chatDate, String roomType) {
         this.fileName = fileName;
         this.chatDate = chatDate;
+        this.roomType = roomType;
     }
 
     public void update(LocalDateTime updateDateTime, ChatAggregationResult result) {

@@ -18,7 +18,7 @@ public class ChatParser {
     private static final String SENDER_ADDRESS_PATTERN = "\\s*\\([^)]*\\)\\s*$|\\s*\\[[^]]*\\]\\s*$|\\s*\\{[^}]*\\}\\s*$|\\s*<[^>]*>\\s*$";
     private static final String VALID_DUE_DATE_PATTERN = "\\d{2}[./-]\\d{1,2}[./-]\\d{1,2}";
 
-    public List<Chat> parseChatsFromRawText(String chatDate, String rawText) {
+    public List<Chat> parseChatsFromRawText(String chatDate, String rawText, String roomType) {
         Pattern pattern = Pattern.compile(CHAT_MESSAGE_SEARCH_PATTERN);
         Matcher matcher = pattern.matcher(rawText);
 
@@ -32,6 +32,7 @@ public class ChatParser {
 
             chats.add(Chat.builder()
                     .chatDate(chatDate)
+                    .roomType(roomType)
                     .senderName(senderName)
                     .sendDateTime(sendDateTime)
                     .content(content)

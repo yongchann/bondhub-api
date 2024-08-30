@@ -12,6 +12,8 @@ import java.io.InputStream;
 public class FileInfo {
 
     private String filename;
+    private String fileNameDate;
+    private String fileNamePrefix;
     private long size;
     private String contentType;
     private String content;

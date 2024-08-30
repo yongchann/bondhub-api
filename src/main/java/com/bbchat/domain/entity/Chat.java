@@ -1,6 +1,7 @@
 package com.bbchat.domain.entity;
 
 import com.bbchat.domain.ask.DailyAsk;
+import com.bbchat.domain.bond.Bond;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,8 @@ public class Chat {
     @Column(name = "chat_id")
     private Long id;
 
+    private String roomType;
+
     private String chatDate;
 
     private String senderName;
@@ -26,6 +29,10 @@ public class Chat {
 
     @Enumerated(EnumType.STRING)
     private ChatStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bond_id")
+    private Bond bond;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "daily_ask_id")
@@ -54,7 +61,7 @@ public class Chat {
         this.status = status;
     }
 
-    public void setDailyAsk(DailyAsk dailyAsk) {
-        this.dailyAsk = dailyAsk;
+    public void setBond(Bond bond) {
+        this.bond = bond;
     }
 }

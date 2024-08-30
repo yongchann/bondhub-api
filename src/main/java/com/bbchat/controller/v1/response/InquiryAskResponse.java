@@ -1,11 +1,10 @@
 package com.bbchat.controller.v1.response;
 
-import com.bbchat.service.dto.DailyAskDto;
+import com.bbchat.service.dto.BondChatDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
@@ -13,15 +12,5 @@ import java.util.List;
 @Getter
 public class InquiryAskResponse{
 
-    private List<DailyAskDto> asks;
-
-    private String fileName;
-
-    private LocalDateTime lastAggregatedDateTime;
-
-    private long totalChatCount;
-
-    private long fullyProcessedChatCount;
-
-
+    private List<BondChatDto> bonds;
 }

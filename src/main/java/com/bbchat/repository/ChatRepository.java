@@ -9,11 +9,10 @@ import java.util.List;
 
 public interface ChatRepository extends JpaRepository<Chat, Long> {
 
-    void deleteAllByChatDate(String chatDate);
+    void deleteAllByChatDateAndRoomType(String chatDate, String roomType);
 
     @Query("SELECT c FROM Chat c " +
-            "JOIN FETCH c.dailyAsk da " +
-            "JOIN FETCH da.bond b " +
+            "JOIN FETCH c.bond b " +
             "JOIN FETCH b.bondIssuer bi " +
             "WHERE c.chatDate = :date " +
             "AND c.status = 'OK' " +

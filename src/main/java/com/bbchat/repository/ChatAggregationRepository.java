@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface ChatAggregationRepository extends JpaRepository<ChatAggregation, Long> {
 
-    Optional<ChatAggregation> findByChatDate(String chatDate);
+    Optional<ChatAggregation> findByChatDateAndRoomType(String chatDate, String roomType);
 }

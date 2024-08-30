@@ -18,13 +18,13 @@ public class AggregationController {
     private final AggregationService aggregationService;
 
     @PostMapping("/api/v1/aggregation/chat")
-    public void aggregateDailyChat(@RequestParam("date") String date) {
-        aggregationService.aggregateChat(date);
+    public void aggregateDailyChat(@RequestParam("date") String date, @RequestParam("roomType")String roomType) {
+        aggregationService.aggregateChat(date, roomType);
     }
 
     @GetMapping("/api/v1/aggregation/chat")
-    public ChatAggregationResponse getChatAggregation(@RequestParam("date") String date) {
-        ChatAggregationResult result = aggregationService.getChatAggregation(date);
+    public ChatAggregationResponse getChatAggregation(@RequestParam("date") String date, @RequestParam("roomType")String roomType) {
+        ChatAggregationResult result = aggregationService.getChatAggregation(date, roomType);
         return ChatAggregationResponse.from(result);
     }
 

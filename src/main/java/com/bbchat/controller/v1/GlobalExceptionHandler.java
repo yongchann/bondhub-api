@@ -1,6 +1,7 @@
 package com.bbchat.controller.v1;
 
 
+import com.bbchat.service.exception.IllegalFileNameException;
 import com.bbchat.service.exception.NotFoundAggregationException;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleNotFoundAggregationException(NotFoundAggregationException ex) {
         ErrorResponse error = new ErrorResponse(HttpStatus.OK.value(), ex.getMessage());
         return ResponseEntity.of(Optional.of(List.of()));
+    }
+
+    @ExceptionHandler(IllegalFileNameException.class)
+    public ResponseEntity<?> handleIllegalFileNameException(IllegalFileNameException ex) {
+        ErrorResponse error = new ErrorResponse(HttpStatus.OK.value(), ex.getMessage());
+        return ResponseEntity.ok(ex.getMessage());
     }
 
     @JsonSerialize
