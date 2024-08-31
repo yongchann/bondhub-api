@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,6 +37,7 @@ public class ChatProcessor {
         chatRepository.deleteAllByChatDateAndRoomType(date,roomType);
 
         List<Chat> allChats = chatParser.parseChatsFromRawText(date, preprocess(rawContentChat), roomType);
+        allChats = new HashSet<>(allChats).stream().toList(); // 내용이 완전히 동일한 채팅 제거
 
         List<Chat> filteredChats = allChats.stream()
                 .filter(chat -> isSellingMessage(chat.getContent()))

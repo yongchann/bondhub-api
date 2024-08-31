@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -58,5 +59,18 @@ public class Chat {
 
     public void setBond(Bond bond) {
         this.bond = bond;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Chat chat = (Chat) o;
+        return Objects.equals(content, chat.content);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(content);
     }
 }
