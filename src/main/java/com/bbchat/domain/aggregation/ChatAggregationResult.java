@@ -42,4 +42,12 @@ public class ChatAggregationResult {
         this.uncategorizedChatCount += uncategorizedChatCount;
         this.fullyProcessedChatCount += fullyProcessedChatCount;
     }
+
+    public void discardMultiDueDateChat(long cnt) {
+        this.multiDueDateChatCount -= cnt;
+    }
+
+    public void discardUncategorizedChat(long cnt) {
+        this.uncategorizedChatCount -= cnt;
+    }
 }

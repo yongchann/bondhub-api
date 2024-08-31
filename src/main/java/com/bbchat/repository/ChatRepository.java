@@ -33,6 +33,8 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
 
     List<Chat> findByChatDateAndRoomTypeAndStatus(String chatDate, String roomType, ChatStatus status);
 
+    List<Chat> findByChatDateAndRoomTypeAndStatusAndIdIn(String chatDate, String roomType, ChatStatus status, List<Long> ids);
+
     Optional<Chat> findByIdAndChatDateAndRoomTypeAndStatus(Long id, String chatDate, String roomType, ChatStatus status);
 }
 

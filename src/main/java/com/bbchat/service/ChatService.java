@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -21,14 +20,19 @@ import java.util.stream.Collectors;
 @Service
 public class ChatService {
 
-    private final ChatRepository chatRepository;
+    private final ChatRepository  chatRepository;
     private final ChatAggregationRepository chatAggregationRepository;
     private final ChatParser chatParser;
     private final ChatProcessor chatProcessor;
 
-    public List<String> findUncategorizedChats(String chatDate, String roomType) {
+    public List<ChatDto> findUncategorizedChats(String chatDate, String roomType) {
         List<Chat> chats = chatRepository.findByChatDateAndRoomTypeAndStatus(chatDate, roomType, ChatStatus.UNCATEGORIZED);
-        return chats.stream().map(Chat::getContent).toList();
+        return chats.stream().map(
+                        chat -> ChatDto.builder()
+                                .chatId(chat.getId())
+                                .content(chat.getContent())
+                                .build())
+                .toList();
     }
 
     public List<ChatDto> findMultiBondChats(String chatDate, String roomType) {
@@ -36,11 +40,7 @@ public class ChatService {
         return chats.stream().map(
                         chat -> ChatDto.builder()
                                 .chatId(chat.getId())
-                                .chatDate(chat.getChatDate())
                                 .content(chat.getContent())
-                                .senderName(chat.getSenderName())
-                                .senderAddress(chat.getSenderAddress())
-                                .sendTime(chat.getSendDateTime())
                                 .build())
                 .toList();
     }
@@ -70,5 +70,25 @@ public class ChatService {
                 statusCounts.getOrDefault(ChatStatus.OK, 0L)); // 분류 채팅 수
 
         return separatedChats.size();
+    }
+
+    @Transactional
+    public void discardChats(List<Long> chatIds, String chatDate, String roomType, ChatStatus targetStatus) {
+        List<Chat> targetChats = chatRepository.findByChatDateAndRoomTypeAndStatusAndIdIn(chatDate, roomType, targetStatus, chatIds);
+        if (chatIds.size() != targetChats.size()) {
+            throw new IllegalArgumentException("Mismatch between requested and retrieved chat count.");
+        }
+
+        targetChats.forEach(chat -> chat.setStatus(ChatStatus.DISCARDED));
+        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateAndRoomTypeOrderByResultAggregatedDateTimeDesc(chatDate, roomType)
+                .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));
+
+        if (targetStatus.equals(ChatStatus.MULTI_DD)) {
+            aggregation.getResult().discardMultiDueDateChat(targetChats.size());
+        } else if (targetStatus.equals(ChatStatus.UNCATEGORIZED)) {
+            aggregation.getResult().discardUncategorizedChat(targetChats.size());
+        } else {
+            throw new IllegalArgumentException("can not discard this type of chat: " + targetChats);
+        }
     }
 }
