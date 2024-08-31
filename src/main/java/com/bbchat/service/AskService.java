@@ -2,6 +2,7 @@ package com.bbchat.service;
 
 import com.bbchat.domain.MaturityCondition;
 import com.bbchat.domain.bond.Bond;
+import com.bbchat.domain.bond.BondType;
 import com.bbchat.domain.chat.Chat;
 import com.bbchat.repository.ChatRepository;
 import com.bbchat.service.dto.BondChatDto;
@@ -23,12 +24,12 @@ public class AskService {
 
     private final ChatRepository chatRepository;
 
-    public List<BondChatDto> inquiry(String date, MaturityCondition condition, List<String> grades) {
+    public List<BondChatDto> inquiry(String date, BondType bondType, MaturityCondition condition, List<String> grades) {
         String start, end;
         if (condition.getMaturityInquiryType().equals("remain")) {
             start = calculateDate(date, Integer.parseInt(condition.getMinMonth()));
             end = calculateDate(date, Integer.parseInt(condition.getMaxMonth()));
-        } else if (condition.getMaturityInquiryType().equals("explicit")) {
+        } else if (condition.getMaturityInquiryType().equals("specific")) {
             start = condition.getMinYear() + "-" + condition.getMinMonth() + "-01";
             end = condition.getMaxYear() + "-" + condition.getMaxMonth() + "-31";
         } else {
@@ -36,7 +37,7 @@ public class AskService {
         }
 
         // 조건에 맞는 채팅 조회
-        List<Chat> chats = chatRepository.findValidChatsWithinDueDateRangeAndIssuerGrades(date, start, end, grades);
+        List<Chat> chats = chatRepository.findValidChatsWithinDueDateRangeAndIssuerGrades(date, bondType, start, end, grades);
 
         // 채권에 따라 채팅을 grouping
         return groupByBond(chats);

@@ -21,7 +21,7 @@ public class AskController {
 
     @PostMapping("/api/v1/ask/daily")
     public List<BondChatDto> findAsk(@RequestParam("date")String date, @RequestBody InquiryAskRequest request) {
-        return askService.inquiry(date, request.getMaturityCondition(), request.getGrades());
+        return askService.inquiry(date, request.getBondType(), request.getMaturityCondition(), request.getGrades());
     }
 
 }
