@@ -40,8 +40,8 @@ public class BondInitializer {
     @EventListener(ApplicationReadyEvent.class)
     protected void init() {
         Map<String, BondType> fileNameBondTypeMap = Map.of(
-                "bond_bank.json", BondType.PUBLIC, "bond_public.json", BondType.COMPANY,
-                "bond_company.json", BondType.BANK, "bond_specialized_credit.json", BondType.SPECIALIZED_CREDIT);
+                "bond_bank.json", BondType.BANK, "bond_public.json", BondType.PUBLIC,
+                "bond_company.json", BondType.COMPANY, "bond_specialized_credit.json", BondType.SPECIALIZED_CREDIT);
 
         fileNameBondTypeMap.forEach((fileName, bondType) -> {
             try {
