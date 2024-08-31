@@ -35,8 +35,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalFileNameException.class)
     public ResponseEntity<?> handleIllegalFileNameException(IllegalFileNameException ex) {
-        ErrorResponse error = new ErrorResponse(HttpStatus.OK.value(), ex.getMessage());
-        return ResponseEntity.ok(ex.getMessage());
+        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @JsonSerialize
