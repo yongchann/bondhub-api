@@ -78,7 +78,7 @@ public class AggregationService {
     }
 
     public ChatAggregationResult getChatAggregation(String date,String roomType) {
-        ChatAggregation aggregation = chatAggregationRepository.findByChatDateAndRoomType(date, roomType)
+        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateAndRoomTypeOrderByResultAggregatedDateTimeDesc(date, roomType)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + date));
 
         return ChatAggregationResult.from(aggregation);
