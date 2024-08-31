@@ -3,20 +3,21 @@ package com.bbchat.service;
 import com.bbchat.domain.bond.BondAlias;
 import com.bbchat.domain.bond.BondIssuer;
 import com.bbchat.repository.BondAliasRepository;
+import com.bbchat.repository.BondIssuerRepository;
 import com.bbchat.service.dto.BondAliasDto;
 import com.bbchat.service.dto.BondIssuerDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 public class BondIssuerService {
 
+    private final BondIssuerRepository bondIssuerRepository;
     private final BondAliasRepository bondAliasRepository;
 
     public List<BondIssuerDto> getBondIssuersWithAliases() {
@@ -44,4 +45,11 @@ public class BondIssuerService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void modifyGrade(Long bondIssuerId, String grade) {
+        BondIssuer bondIssuer = bondIssuerRepository.findById(bondIssuerId)
+                .orElseThrow(() -> new NoSuchElementException("not found bond issuer id" + bondIssuerId));
+
+        bondIssuer.setGrade(grade);
+    }
 }

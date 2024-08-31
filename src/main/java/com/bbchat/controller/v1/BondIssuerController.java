@@ -1,5 +1,6 @@
 package com.bbchat.controller.v1;
 
+import com.bbchat.controller.v1.request.ModifyBondGradeRequest;
 import com.bbchat.controller.v1.response.BondIssuerResponse;
 import com.bbchat.domain.bond.BondType;
 import com.bbchat.service.BondAliasService;
@@ -37,6 +38,11 @@ public class BondIssuerController {
     @PostMapping("/api/v1/issuer/{bondIssuerId}/alias")
     public void addBondAlias(@PathVariable("bondIssuerId") Long bondIssuerId, @RequestParam("name") String bondAliasName) {
         bondAliasService.addBondAlias(bondIssuerId, bondAliasName);
+    }
+
+    @PatchMapping("/api/v1/issuer/{bondIssuerId}")
+    public void modifyGrade(@PathVariable("bondIssuerId") Long bondIssuerId, @RequestBody ModifyBondGradeRequest request) {
+        bondIssuerService.modifyGrade(bondIssuerId, request.getGrade());
     }
 
     @DeleteMapping("/api/v1/issuer/{bondIssuerId}/alias/{bondAliasId}")
