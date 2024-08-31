@@ -1,11 +1,10 @@
 package com.bbchat.controller.v1;
 
+import com.bbchat.controller.v1.request.SplitMultiBondChatRequest;
 import com.bbchat.service.ChatService;
 import com.bbchat.service.dto.ChatDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,4 +24,9 @@ public class ChatController {
         return chatService.findMultiBondChats(date, roomType);
     }
 
+    @PostMapping("/api/v1/chat/multi-bond/split")
+    public int splitMultiBondChat(@RequestBody SplitMultiBondChatRequest request) {
+        return chatService.split(request.getChatId(), request.getChatDate(), request.getRoomType(), request.getSplitContents());
+
+    }
 }

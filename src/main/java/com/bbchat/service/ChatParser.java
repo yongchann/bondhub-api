@@ -69,4 +69,23 @@ public class ChatParser {
 
         return String.join("-", parts);
     }
+
+    public List<Chat> parseMultiBondChat(Chat multiBondChat, List<String> splitContents) {
+        List<Chat> splitChats = new ArrayList<>();
+        for (String splitContent : splitContents) {
+            if (!multiBondChat.getContent().contains(splitContent)) {
+                throw new IllegalArgumentException("invalid split content, org chat doesn't contain " + splitContent);
+            }
+
+            List<String> dueDates = extractDueDates(splitContent);
+            if (dueDates.size() != 1) {
+                throw new IllegalArgumentException("invalid split content, due date count must be 1, content:" + splitContent);
+            }
+
+            String dueDate = dueDates.get(0);
+            splitChats.add(Chat.fromMultiBondChat(multiBondChat, splitContent, dueDate));
+        }
+
+        return splitChats;
+    }
 }

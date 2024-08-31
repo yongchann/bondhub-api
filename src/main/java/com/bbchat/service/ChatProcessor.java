@@ -50,16 +50,7 @@ public class ChatProcessor {
                 .filter(chat -> chat.getStatus().equals(ChatStatus.SINGLE_DD))
                 .toList();
 
-        singleDueDateChats.forEach(chat -> {
-            Bond bond = bondClassifier.extractBond(chat.getContent(), chat.getDueDate());
-            if (bond == null) {
-                chat.setStatus(ChatStatus.UNCATEGORIZED);
-                log.warn("failed to extract bond from [%s]".formatted(chat.getContent()));
-            } else {
-                chat.setStatus(ChatStatus.OK);
-                chat.setBond(bond);
-            }
-        });
+        singleDueDateChats.forEach(this::assignBondByContent);
 
         Map<ChatStatus, Long> statusCounts = allChats.stream()
                 .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
@@ -73,6 +64,17 @@ public class ChatProcessor {
                 .uncategorizedChatCount(statusCounts.get(ChatStatus.UNCATEGORIZED))
                 .fullyProcessedChatCount(statusCounts.get(ChatStatus.OK))
                 .build();
+    }
+
+    public void assignBondByContent(Chat chat) {
+        Bond bond = bondClassifier.extractBond(chat.getContent(), chat.getDueDate());
+        if (bond == null) {
+            chat.setStatus(ChatStatus.UNCATEGORIZED);
+            log.warn("failed to extract bond from [%s]".formatted(chat.getContent()));
+        } else {
+            chat.setStatus(ChatStatus.OK);
+            chat.setBond(bond);
+        }
     }
 
     private boolean isSellingMessage(String content) {

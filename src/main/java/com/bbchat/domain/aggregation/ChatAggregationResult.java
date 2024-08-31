@@ -36,4 +36,10 @@ public class ChatAggregationResult {
                 .fullyProcessedChatCount(entity.getResult().getFullyProcessedChatCount())
                 .build();
     }
+
+    public void updateMultiDueDateSeparation(long uncategorizedChatCount, long fullyProcessedChatCount) {
+        this.multiDueDateChatCount -= 1;
+        this.uncategorizedChatCount += uncategorizedChatCount;
+        this.fullyProcessedChatCount += fullyProcessedChatCount;
+    }
 }

@@ -61,6 +61,19 @@ public class Chat {
         this.bond = bond;
     }
 
+    public static Chat fromMultiBondChat(Chat multiBondChat, String splitContent, String dueDate) {
+        return Chat.builder()
+                .chatDate(multiBondChat.getChatDate())
+                .roomType(multiBondChat.getRoomType())
+                .senderName(multiBondChat.getSenderName())
+                .sendDateTime(multiBondChat.getSendDateTime())
+                .content(splitContent)
+                .senderAddress(multiBondChat.getSenderAddress())
+                .status(ChatStatus.SINGLE_DD)
+                .dueDate(dueDate)
+                .build();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

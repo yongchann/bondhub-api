@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ChatRepository extends JpaRepository<Chat, Long> {
 
@@ -32,5 +33,6 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
 
     List<Chat> findByChatDateAndRoomTypeAndStatus(String chatDate, String roomType, ChatStatus status);
 
+    Optional<Chat> findByIdAndChatDateAndRoomTypeAndStatus(Long id, String chatDate, String roomType, ChatStatus status);
 }
 
