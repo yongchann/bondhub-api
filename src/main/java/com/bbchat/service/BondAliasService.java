@@ -27,7 +27,7 @@ public class BondAliasService {
             throw new IllegalArgumentException("BondIssuer with ID " + bondIssuerId + " does not exist.");
         }
 
-        Optional<BondAlias> existingAliasOpt = bondAliasRepository.findByNameAndBondIssuerId(bondAliasName, bondIssuerId);
+        Optional<BondAlias> existingAliasOpt = bondAliasRepository.findByName(bondAliasName);
         if (existingAliasOpt.isPresent()) {
             throw new IllegalArgumentException("BondAlias with name " + bondAliasName + " already exists for BondIssuer ID " + bondIssuerId);
         }
