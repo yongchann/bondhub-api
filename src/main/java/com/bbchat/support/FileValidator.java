@@ -12,16 +12,11 @@ import java.util.List;
 @Component
 public class FileValidator {
 
-    private static final List<String> ALLOWED_CHAT_FILE_PREFIX = List.of("BB", "RB", "MM");
+    private static final List<String> ALLOWED_CHAT_FILE_PREFIX = List.of("채권_블커본드", "채권_레드본드", "채권_막무가내");
     private static final List<String> ALLOWED_TRANSACTION_FILE_PREFIX = Arrays.asList("TX");
 
     public FileInfo checkChatFileName(String fileName) {
-        for (String prefix : ALLOWED_CHAT_FILE_PREFIX) {
-            if (fileName.startsWith(prefix)) {
-                return parseChatFileName(fileName, prefix);
-            }
-        }
-        throw new IllegalFileNameException(fileName);
+        return parseChatFileName(fileName);
     }
 
     public String checkTransactionFileName(String fileName) {
@@ -44,7 +39,7 @@ public class FileValidator {
         }
     }
 
-    public FileInfo parseChatFileName(String fileName, String prefix) {
+    public FileInfo parseChatFileName(String fileName) {
         String[] split = fileName.split("_");
 
         String dateString = split[2];
@@ -58,7 +53,6 @@ public class FileValidator {
             return FileInfo.builder()
                     .filename(fileName)
                     .fileNameDate(formattedDate)
-                    .fileNamePrefix(prefix)
                     .build();
         } catch (ParseException e) {
             throw new IllegalFileNameException(fileName);

@@ -19,9 +19,10 @@ public class UploadController {
 
     @PostMapping("/api/v1/upload/chat")
     public ResponseEntity<?> uploadChatFile(@RequestParam("date") String date,
+                                            @RequestParam("roomType") String roomType,
                                             @RequestParam("file") MultipartFile file) {
         try {
-            uploadService.uploadChatFile(date, file.getOriginalFilename(), file.getInputStream());
+            uploadService.uploadChatFile(date, roomType, file.getOriginalFilename(), file.getInputStream());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

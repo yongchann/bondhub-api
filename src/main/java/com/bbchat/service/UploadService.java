@@ -1,5 +1,6 @@
 package com.bbchat.service;
 
+import com.bbchat.service.exception.IllegalFileNameException;
 import com.bbchat.support.FileInfo;
 import com.bbchat.support.FileValidator;
 import com.bbchat.support.S3FileRepository;
@@ -22,13 +23,14 @@ public class UploadService {
     public final static String TRANSACTION_FILE_KEY_PREFIX = "transaction";
     public final static String TRANSACTION_FILE_SAVE_NAME = "transaction.xlsx";
 
-    public void uploadChatFile(String uploadDate, String fileName, InputStream inputStream) {
+    public void uploadChatFile(String uploadDate, String roomType, String fileName, InputStream inputStream) {
         FileInfo fileInfo = fileValidator.checkChatFileName(fileName);
         if (!fileInfo.getFileNameDate().equals(uploadDate)) {
             log.warn("this chat file is not created today. dateFromFileName: {}", fileInfo.getFileNameDate());
+            throw new IllegalFileNameException("available for chat file of same date only");
         }
 
-        String filePath = fileRepository.buildPath(CHAT_FILE_KEY_PREFIX, fileInfo.getFileNameDate(), fileInfo.getFileNamePrefix());
+        String filePath = S3FileRepository.buildPath(CHAT_FILE_KEY_PREFIX, fileInfo.getFileNameDate(), roomType);
         fileRepository.save(filePath, "chat.txt", inputStream, "text/plain; charset=UTF-8", "chat");
     }
 
@@ -38,7 +40,7 @@ public class UploadService {
             log.warn("this excel file is not created today. dateFromFileName: {}", dateFromFileName);
         }
 
-        String filePath = fileRepository.buildPath(TRANSACTION_FILE_KEY_PREFIX, dateFromFileName);
+        String filePath = S3FileRepository.buildPath(TRANSACTION_FILE_KEY_PREFIX, dateFromFileName);
         fileRepository.save(filePath, "transaction.xlsx", inputStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "transaction");
     }
 
