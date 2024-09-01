@@ -1,23 +1,18 @@
-package com.bbchat.service.dto;
+package com.bbchat.controller.v1.request;
 
+import com.bbchat.domain.bond.BondType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class BondIssuerDto {
+public class CreateBondIssuerRequest {
 
-    private Long id;
+    private BondType bondType;
 
     private String name;
 
-    private String type;
-
     private String grade;
-
-    private List<BondAliasDto> bondAliases;
 }

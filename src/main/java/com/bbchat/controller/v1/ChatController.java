@@ -1,7 +1,7 @@
 package com.bbchat.controller.v1;
 
 import com.bbchat.controller.v1.request.SplitMultiBondChatRequest;
-import com.bbchat.controller.v1.request.ThrowAwayChatRequest;
+import com.bbchat.controller.v1.request.DiscardChatsRequest;
 import com.bbchat.domain.chat.ChatStatus;
 import com.bbchat.service.ChatService;
 import com.bbchat.service.dto.ChatDto;
@@ -32,7 +32,7 @@ public class ChatController {
     }
 
     @PatchMapping("/api/v1/chat/discard")
-    public void discardChats(@RequestParam(name = "status") ChatStatus status, @RequestBody ThrowAwayChatRequest request) {
+    public void discardChats(@RequestParam(name = "status") ChatStatus status, @RequestBody DiscardChatsRequest request) {
         chatService.discardChats(request.getChatIds(), request.getChatDate(), request.getRoomType(), status);
     }
 }

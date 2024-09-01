@@ -2,11 +2,13 @@ package com.bbchat.service;
 
 import com.bbchat.domain.bond.BondAlias;
 import com.bbchat.domain.bond.BondIssuer;
+import com.bbchat.domain.bond.BondType;
 import com.bbchat.repository.BondAliasRepository;
 import com.bbchat.repository.BondIssuerRepository;
 import com.bbchat.service.dto.BondAliasDto;
 import com.bbchat.service.dto.BondIssuerDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +40,7 @@ public class BondIssuerService {
                             bondIssuer.getId(),
                             bondIssuer.getName(),
                             bondIssuer.getType().name(),
+                            bondIssuer.getGrade(),
                             bondAliasDtos
                     );
                 })
@@ -46,10 +49,39 @@ public class BondIssuerService {
     }
 
     @Transactional
-    public void modifyGrade(Long bondIssuerId, String grade) {
+    public void modify(Long bondIssuerId, String grade, String name) {
         BondIssuer bondIssuer = bondIssuerRepository.findById(bondIssuerId)
                 .orElseThrow(() -> new NoSuchElementException("not found bond issuer id" + bondIssuerId));
 
-        bondIssuer.setGrade(grade);
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("bond issuer name is empty");
+        }
+
+        if (grade == null || grade.trim().isEmpty()) {
+            throw new IllegalArgumentException("bond issuer grade is empty");
+        }
+
+        bondIssuer.modify(name,grade);
+    }
+
+    @Transactional
+    public void create(BondType bondType, String name, String grade) {
+        Optional<BondIssuer> bondIssuer = bondIssuerRepository.findByName(name);
+        if (bondIssuer.isPresent()) {
+            throw new IllegalArgumentException("already exist issuer name:" + name);
+        }
+
+        BondIssuer newBondIssuer = BondIssuer.builder()
+                .type(bondType)
+                .name(name)
+                .grade(grade).build();
+        bondIssuerRepository.save(newBondIssuer);
+
+        BondAlias defaultAlias = BondAlias.builder()
+                .bondIssuer(newBondIssuer)
+                .name(name)
+                .build();
+        bondAliasRepository.save(defaultAlias);
+
     }
 }

@@ -4,6 +4,7 @@ import com.bbchat.domain.bond.BondAlias;
 import com.bbchat.domain.bond.BondIssuer;
 import com.bbchat.repository.BondAliasRepository;
 import com.bbchat.repository.BondIssuerRepository;
+import com.bbchat.service.dto.BondAliasDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class BondAliasService {
 
     private final ApplicationEventPublisher eventPublisher;
 
-    public void addBondAlias(Long bondIssuerId, String bondAliasName) {
+    public BondAliasDto addBondAlias(Long bondIssuerId, String bondAliasName) {
 
         Optional<BondIssuer> bondIssuerOpt = bondIssuerRepository.findById(bondIssuerId);
         if (bondIssuerOpt.isEmpty()) {
@@ -31,10 +32,12 @@ public class BondAliasService {
             throw new IllegalArgumentException("BondAlias with name " + bondAliasName + " already exists for BondIssuer ID " + bondIssuerId);
         }
 
-        bondAliasRepository.save(BondAlias.builder()
+        BondAlias newBondAlias = bondAliasRepository.save(BondAlias.builder()
                 .name(bondAliasName)
                 .bondIssuer(bondIssuerOpt.get())
                 .build());
+
+        return new BondAliasDto(newBondAlias.getId(), newBondAlias.getName());
 
 //        eventPublisher.publishEvent(new BondAliasAddedEvent(this, "bond alias added. bondIssuerId: %d, bondAliasName:%s".formatted(bondIssuerId, bondAliasName)));
     }

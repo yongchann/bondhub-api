@@ -1,10 +1,14 @@
 package com.bbchat.controller.v1;
 
-import com.bbchat.controller.v1.request.ModifyBondGradeRequest;
+import com.bbchat.controller.v1.request.AddAliasRequest;
+import com.bbchat.controller.v1.request.CreateBondIssuerRequest;
+import com.bbchat.controller.v1.request.ModifyBondIssuerRequest;
+import com.bbchat.controller.v1.response.AddAliasResponse;
 import com.bbchat.controller.v1.response.BondIssuerResponse;
 import com.bbchat.domain.bond.BondType;
 import com.bbchat.service.BondAliasService;
 import com.bbchat.service.BondIssuerService;
+import com.bbchat.service.dto.BondAliasDto;
 import com.bbchat.service.dto.BondIssuerDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -35,14 +39,20 @@ public class BondIssuerController {
         );
     }
 
+    @PostMapping("/api/v1/issuer")
+    public void addBondIssuer(@RequestBody CreateBondIssuerRequest request) {
+        bondIssuerService.create(request.getBondType(), request.getName(), request.getGrade());
+    }
+
     @PostMapping("/api/v1/issuer/{bondIssuerId}/alias")
-    public void addBondAlias(@PathVariable("bondIssuerId") Long bondIssuerId, @RequestParam("name") String bondAliasName) {
-        bondAliasService.addBondAlias(bondIssuerId, bondAliasName);
+    public AddAliasResponse addBondAlias(@PathVariable("bondIssuerId") Long bondIssuerId, @RequestBody AddAliasRequest request) {
+        BondAliasDto result = bondAliasService.addBondAlias(bondIssuerId, request.getName());
+        return new AddAliasResponse(result.getId(), request.getName());
     }
 
     @PatchMapping("/api/v1/issuer/{bondIssuerId}")
-    public void modifyGrade(@PathVariable("bondIssuerId") Long bondIssuerId, @RequestBody ModifyBondGradeRequest request) {
-        bondIssuerService.modifyGrade(bondIssuerId, request.getGrade());
+    public void modifyBondIssuer(@PathVariable("bondIssuerId") Long bondIssuerId, @RequestBody ModifyBondIssuerRequest request) {
+        bondIssuerService.modify(bondIssuerId, request.getGrade(), request.getName());
     }
 
     @DeleteMapping("/api/v1/issuer/{bondIssuerId}/alias/{bondAliasId}")

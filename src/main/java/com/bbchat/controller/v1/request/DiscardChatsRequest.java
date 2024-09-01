@@ -7,7 +7,7 @@ import java.util.List;
 
 @AllArgsConstructor
 @Getter
-public class ThrowAwayChatRequest {
+public class DiscardChatsRequest {
 
     private List<Long> chatIds;
 

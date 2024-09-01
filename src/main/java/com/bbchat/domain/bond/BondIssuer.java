@@ -20,7 +20,11 @@ public class BondIssuer {
 
     private String name;
 
-    @Setter
     private String grade;
+
+    public void modify(String name, String grade) {
+        this.name = name;
+        this.grade = grade;
+    }
 
 }
