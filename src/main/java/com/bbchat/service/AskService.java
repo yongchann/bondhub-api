@@ -30,10 +30,11 @@ public class AskService {
             start = calculateDate(date, Integer.parseInt(condition.getMinMonth()));
             end = calculateDate(date, Integer.parseInt(condition.getMaxMonth()));
         } else if (condition.getMaturityInquiryType().equals("specific")) {
-            start = condition.getMinYear() + "-" + condition.getMinMonth() + "-01";
-            end = condition.getMaxYear() + "-" + condition.getMaxMonth() + "-31";
+            start = formatYearMonth(formatYear(condition.getMinYear()), condition.getMinMonth()) + "-01";
+            end = formatYearMonth(formatYear(condition.getMaxYear()), condition.getMaxMonth()) + "-" +
+                    getLastDayOfMonth(formatYear(condition.getMaxYear()), condition.getMaxMonth());
         } else {
-            throw new IllegalInquiryParameterException("maturityInquiryType: " + condition.getMaturityInquiryType());
+            throw new IllegalInquiryParameterException("Invalid maturityInquiryType: " + condition.getMaturityInquiryType());
         }
 
         // 조건에 맞는 채팅 조회
@@ -43,6 +44,26 @@ public class AskService {
         return groupByBond(chats);
     }
 
+    private String formatYear(String year) {
+        if (year.length() == 2) {
+            return "20" + year;
+        }
+        return year;
+    }
+
+    private String formatYearMonth(String year, String month) {
+        return String.format("%s-%02d", year, Integer.parseInt(month));
+    }
+
+    private String getLastDayOfMonth(String year, String month) {
+        LocalDate date = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), 1);
+        return String.format("%02d", date.lengthOfMonth());
+    }
+
+    private String calculateDate(String baseDate, int monthsToAdd) {
+        LocalDate date = LocalDate.parse(baseDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return date.plusMonths(monthsToAdd).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
     private List<BondChatDto> groupByBond(List<Chat> chats) {
         Map<Bond, BondChatDto> bondMap = new HashMap<>();
         for (Chat chat : chats) {
@@ -59,10 +80,4 @@ public class AskService {
                 .toList();
     }
 
-    private String calculateDate(String baseDate, int monthsToAdd) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate date = LocalDate.parse(baseDate, formatter);
-        LocalDate calculatedDate = date.plusMonths(monthsToAdd);
-        return calculatedDate.format(formatter);
-    }
 }
