@@ -20,9 +20,9 @@ public class FileValidator {
     }
 
     public String checkTransactionFileName(String fileName) {
-        if (ALLOWED_TRANSACTION_FILE_PREFIX.stream().noneMatch(fileName::startsWith)) {
-            throw new IllegalFileNameException(fileName);
-        }
+//        if (ALLOWED_TRANSACTION_FILE_PREFIX.stream().noneMatch(fileName::startsWith)) {
+//            throw new IllegalFileNameException(fileName);
+//        }
 
         String[] parts = fileName.split("_");
         if (parts.length < 2) {
