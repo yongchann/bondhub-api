@@ -8,7 +8,8 @@ import com.bbchat.repository.BondAliasRepository;
 import com.bbchat.repository.BondIssuerRepository;
 import com.bbchat.repository.ExclusionKeywordRepository;
 import com.bbchat.service.dto.BondIssuerJson;
-import com.bbchat.service.event.BondAliasAddedEvent;
+import com.bbchat.service.event.BondAliasEvent;
+import com.bbchat.service.event.ExclusionKeywordEvent;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -77,8 +78,8 @@ public class BondInitializer {
             throw new RuntimeException(e);
         }
 
-
-        eventPublisher.publishEvent(new BondAliasAddedEvent(this, "BondInitializer succeeded to update bond info"));
+        eventPublisher.publishEvent(new BondAliasEvent(this, BondAliasEvent.Type.INITIALIZED, "BondInitializer succeeded to update bond info", ""));
+        eventPublisher.publishEvent(new ExclusionKeywordEvent(this, ExclusionKeywordEvent.Type.INITIALIZED,"BondInitializer succeeded to update exclusion keywords", ""));
 
     }
 

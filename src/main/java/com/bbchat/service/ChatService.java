@@ -3,17 +3,23 @@ package com.bbchat.service;
 import com.bbchat.domain.aggregation.ChatAggregation;
 import com.bbchat.domain.chat.Chat;
 import com.bbchat.domain.chat.ChatStatus;
+import com.bbchat.domain.chat.ExclusionKeyword;
 import com.bbchat.repository.ChatAggregationRepository;
 import com.bbchat.repository.ChatRepository;
+import com.bbchat.repository.ExclusionKeywordRepository;
 import com.bbchat.service.dto.ChatDto;
+import com.bbchat.service.dto.ExclusionKeywordDto;
+import com.bbchat.service.event.ExclusionKeywordEvent;
 import com.bbchat.service.exception.NotFoundAggregationException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -22,8 +28,12 @@ public class ChatService {
 
     private final ChatRepository  chatRepository;
     private final ChatAggregationRepository chatAggregationRepository;
+    private final ExclusionKeywordRepository exclusionKeywordRepository;
     private final ChatParser chatParser;
     private final ChatProcessor chatProcessor;
+
+    private final ApplicationEventPublisher publisher;
+
 
     public List<ChatDto> findUncategorizedChats(String chatDate, String roomType) {
         List<Chat> chats = chatRepository.findByChatDateAndRoomTypeAndStatus(chatDate, roomType, ChatStatus.UNCATEGORIZED);
@@ -90,5 +100,35 @@ public class ChatService {
         } else {
             throw new IllegalArgumentException("can not discard this type of chat: " + targetChats);
         }
+    }
+
+    public List<ExclusionKeywordDto> getExclusionKeywords() {
+        List<ExclusionKeyword> keywords = exclusionKeywordRepository.findAll();
+        return  keywords.stream()
+                .map(keyword -> new ExclusionKeywordDto(keyword.getId(), keyword.getName()))
+                .toList();
+    }
+
+    @Transactional
+    public void deleteExclusionKeywords(Long exclusionKeywordId) {
+        ExclusionKeyword exclusionKeyword = exclusionKeywordRepository.findById(exclusionKeywordId)
+                .orElseThrow(() -> new IllegalArgumentException("not found exclusion keyword, id: " + exclusionKeywordId));
+
+        exclusionKeywordRepository.delete(exclusionKeyword);
+
+        publisher.publishEvent(new ExclusionKeywordEvent(this, ExclusionKeywordEvent.Type.DELETED, "exclusion keyword deleted", exclusionKeyword.getName()));
+    }
+
+    public String createExclusionKeyword(String name) {
+        Optional<ExclusionKeyword> keyword = exclusionKeywordRepository.findByName(name);
+        if (keyword.isPresent()) {
+            throw new IllegalArgumentException("already exist exclusion keyword name : " + name);
+        }
+
+        exclusionKeywordRepository.save(new ExclusionKeyword(name));
+
+        publisher.publishEvent(new ExclusionKeywordEvent(this, ExclusionKeywordEvent.Type.CREATED, "exclusion keyword created" ,name));
+
+        return name;
     }
 }

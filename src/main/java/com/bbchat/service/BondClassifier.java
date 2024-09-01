@@ -7,7 +7,8 @@ import com.bbchat.domain.chat.ExclusionKeyword;
 import com.bbchat.repository.BondAliasRepository;
 import com.bbchat.repository.BondRepository;
 import com.bbchat.repository.ExclusionKeywordRepository;
-import com.bbchat.service.event.BondAliasAddedEvent;
+import com.bbchat.service.event.BondAliasEvent;
+import com.bbchat.service.event.ExclusionKeywordEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -40,21 +41,55 @@ public class BondClassifier {
         );
     }
 
-    @EventListener(BondAliasAddedEvent.class)
-    private void load(BondAliasAddedEvent event) {
+    @EventListener(BondAliasEvent.class)
+    private void handleBondAliasEvent(BondAliasEvent event) {
         log.info(event.getMessage());
 
-        // aliasToIssuerMap
-        aliasToIssuerMap.clear();
-        List<BondAlias> bondAliases = bondAliasRepository.findAllFetchBond();
-        bondAliases.forEach(alias -> aliasToIssuerMap.put(alias.getName(), alias.getBondIssuer()));
+        switch (event.getType()) {
+            case INITIALIZED:
+                aliasToIssuerMap.clear();
+                List<BondAlias> bondAliases = bondAliasRepository.findAllFetchBond();
+                bondAliases.forEach(alias -> aliasToIssuerMap.put(alias.getName(), alias.getBondIssuer()));
+                break;
 
-        // exclusionKeywords
-        exclusionKeywords.clear();
-        List<ExclusionKeyword> keywords = this.exclusionKeywordRepository.findAll();
-        for (ExclusionKeyword exclusionKeyword : keywords) {
-            exclusionKeywords.add(exclusionKeyword.getName());
+            case CREATED:
+                BondAlias createdAlias = bondAliasRepository.findByName(event.getBondAliasName()).orElseThrow(
+                        () -> new IllegalArgumentException("failed to find new alias: " + event.getBondAliasName())
+                );
+                aliasToIssuerMap.put(createdAlias.getName(), createdAlias.getBondIssuer());
+                break;
+
+            case DELETED:
+                aliasToIssuerMap.remove(event.getBondAliasName());
+                break;
         }
+    }
+
+    @EventListener(ExclusionKeywordEvent.class)
+    public void handleExclusionKeyword(ExclusionKeywordEvent event) {
+        log.info("ExclusionKeyword {}, {}",event.getType().name(), event.getKeyword());
+
+        switch (event.getType()) {
+            case INITIALIZED:
+                exclusionKeywords.clear();
+                List<ExclusionKeyword> keywords = this.exclusionKeywordRepository.findAll();
+                for (ExclusionKeyword exclusionKeyword : keywords) {
+                    exclusionKeywords.add(exclusionKeyword.getName());
+                }
+                break;
+
+            case CREATED:
+                ExclusionKeyword createdKeyword = exclusionKeywordRepository.findByName(event.getKeyword()).orElseThrow(
+                        () -> new IllegalArgumentException("failed to find new keyword: " + event.getKeyword()));
+                exclusionKeywords.add(createdKeyword.getName());
+                break;
+
+            case DELETED:
+                exclusionKeywords.remove(event.getKeyword());
+                break;
+
+        }
+
     }
 
     public Bond extractBond(String content, String dueDate) {

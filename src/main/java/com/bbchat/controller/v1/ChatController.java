@@ -1,5 +1,6 @@
 package com.bbchat.controller.v1;
 
+import com.bbchat.controller.v1.request.CreateExclusionKeywordRequest;
 import com.bbchat.controller.v1.request.DiscardChatsRequest;
 import com.bbchat.controller.v1.request.SplitMultiBondChatRequest;
 import com.bbchat.controller.v1.response.ExclusionKeywordResponse;
@@ -7,6 +8,7 @@ import com.bbchat.domain.chat.ChatStatus;
 import com.bbchat.service.BondClassifier;
 import com.bbchat.service.ChatService;
 import com.bbchat.service.dto.ChatDto;
+import com.bbchat.service.dto.ExclusionKeywordDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,7 +43,17 @@ public class ChatController {
 
     @GetMapping("/api/v1/chat/exclusion-keyword")
     public ExclusionKeywordResponse getExclusionKeywords() {
-        List<String> exclusionKeywords = classifier.getExclusionKeywords();
+        List<ExclusionKeywordDto> exclusionKeywords = chatService.getExclusionKeywords();
         return new ExclusionKeywordResponse(exclusionKeywords);
+    }
+
+    @DeleteMapping("/api/v1/chat/exclusion-keyword/{id}")
+    public void deleteExclusionKeywords(@PathVariable(name = "id") Long exclusionKeywordId) {
+        chatService.deleteExclusionKeywords(exclusionKeywordId);
+    }
+
+    @PostMapping("/api/v1/chat/exclusion-keyword")
+    public String createExclusionKeyword(@RequestBody CreateExclusionKeywordRequest request) {
+        return chatService.createExclusionKeyword(request.getName());
     }
 }

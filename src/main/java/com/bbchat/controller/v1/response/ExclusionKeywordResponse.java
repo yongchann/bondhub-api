@@ -1,5 +1,6 @@
 package com.bbchat.controller.v1.response;
 
+import com.bbchat.service.dto.ExclusionKeywordDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -9,5 +10,5 @@ import java.util.List;
 @Getter
 public class ExclusionKeywordResponse {
 
-    private List<String> keywords;
+    private List<ExclusionKeywordDto> keywords;
 }
