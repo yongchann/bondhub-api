@@ -1,8 +1,10 @@
 package com.bbchat.controller.v1;
 
-import com.bbchat.controller.v1.request.SplitMultiBondChatRequest;
 import com.bbchat.controller.v1.request.DiscardChatsRequest;
+import com.bbchat.controller.v1.request.SplitMultiBondChatRequest;
+import com.bbchat.controller.v1.response.ExclusionKeywordResponse;
 import com.bbchat.domain.chat.ChatStatus;
+import com.bbchat.service.BondClassifier;
 import com.bbchat.service.ChatService;
 import com.bbchat.service.dto.ChatDto;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
+    private final BondClassifier classifier;
 
     @GetMapping("/api/v1/chat/uncategorized")
     public List<ChatDto> findUncategorizedChats(@RequestParam("date") String date, @RequestParam("roomType") String roomType) {
@@ -34,5 +37,11 @@ public class ChatController {
     @PatchMapping("/api/v1/chat/discard")
     public void discardChats(@RequestParam(name = "status") ChatStatus status, @RequestBody DiscardChatsRequest request) {
         chatService.discardChats(request.getChatIds(), request.getChatDate(), request.getRoomType(), status);
+    }
+
+    @GetMapping("/api/v1/chat/exclusion-keyword")
+    public ExclusionKeywordResponse getExclusionKeywords() {
+        List<String> exclusionKeywords = classifier.getExclusionKeywords();
+        return new ExclusionKeywordResponse(exclusionKeywords);
     }
 }
