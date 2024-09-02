@@ -40,8 +40,8 @@ public class BondIssuerController {
     }
 
     @PostMapping("/api/v1/issuer")
-    public void addBondIssuer(@RequestBody CreateBondIssuerRequest request) {
-        bondIssuerService.create(request.getBondType(), request.getName(), request.getGrade());
+    public BondIssuerDto  addBondIssuer(@RequestBody CreateBondIssuerRequest request) {
+        return bondIssuerService.create(request.getBondType(), request.getName(), request.getGrade());
     }
 
     @PostMapping("/api/v1/issuer/{bondIssuerId}/alias")

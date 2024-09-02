@@ -8,7 +8,6 @@ import com.bbchat.repository.BondIssuerRepository;
 import com.bbchat.service.dto.BondAliasDto;
 import com.bbchat.service.dto.BondIssuerDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,7 +64,7 @@ public class BondIssuerService {
     }
 
     @Transactional
-    public void create(BondType bondType, String name, String grade) {
+    public BondIssuerDto create(BondType bondType, String name, String grade) {
         Optional<BondIssuer> bondIssuer = bondIssuerRepository.findByName(name);
         if (bondIssuer.isPresent()) {
             throw new IllegalArgumentException("already exist issuer name:" + name);
@@ -82,6 +81,14 @@ public class BondIssuerService {
                 .name(name)
                 .build();
         bondAliasRepository.save(defaultAlias);
+
+        return new BondIssuerDto(
+                newBondIssuer.getId(),
+                newBondIssuer.getName(),
+                newBondIssuer.getType().name(),
+                newBondIssuer.getGrade(),
+                List.of(new BondAliasDto(defaultAlias.getId(), defaultAlias.getName()))
+        );
 
     }
 }
