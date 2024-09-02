@@ -40,6 +40,15 @@ public class BondInitializer {
     @Transactional
     @EventListener(ApplicationReadyEvent.class)
     protected void init() {
+        if (isRequiredDbSetup()){
+            dbSetupFromJsonFile();
+        }
+
+        eventPublisher.publishEvent(new BondAliasEvent(this, BondAliasEvent.Type.INITIALIZED, "BondInitializer succeeded to update bond info", ""));
+        eventPublisher.publishEvent(new ExclusionKeywordEvent(this, ExclusionKeywordEvent.Type.INITIALIZED,"BondInitializer succeeded to update exclusion keywords", ""));
+    }
+
+    private void dbSetupFromJsonFile() {
         Map<String, BondType> fileNameBondTypeMap = Map.of(
                 "bond_bank.json", BondType.BANK, "bond_public.json", BondType.PUBLIC,
                 "bond_company.json", BondType.COMPANY, "bond_specialized_credit.json", BondType.SPECIALIZED_CREDIT);
@@ -77,10 +86,10 @@ public class BondInitializer {
             log.error("failed to register exclusion keywords");
             throw new RuntimeException(e);
         }
+    }
 
-        eventPublisher.publishEvent(new BondAliasEvent(this, BondAliasEvent.Type.INITIALIZED, "BondInitializer succeeded to update bond info", ""));
-        eventPublisher.publishEvent(new ExclusionKeywordEvent(this, ExclusionKeywordEvent.Type.INITIALIZED,"BondInitializer succeeded to update exclusion keywords", ""));
-
+    private boolean isRequiredDbSetup() {
+        return bondIssuerRepository.count() < 1;
     }
 
     private Map<String, BondIssuerJson> loadBondAliasFromJson(String filePath) throws IOException {
