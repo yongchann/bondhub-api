@@ -44,10 +44,12 @@ public class UserService {
             token = token.substring(7);
         }
 
-        User user = userRepository.findByToken(token)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+        Optional<User> user = userRepository.findByToken(token);
+        if (user.isEmpty()) {
+            return false;
+        }
 
-        LocalDateTime lastLoginDateTime = user.getLastLoginDateTime();
+        LocalDateTime lastLoginDateTime = user.get().getLastLoginDateTime();
         return LocalDateTime.now().minusHours(6).isBefore(lastLoginDateTime);
     }
 
