@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.util.IOUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -15,7 +16,9 @@ import java.io.InputStream;
 public class S3FileRepository {
 
     private final AmazonS3Client s3Client;
-    private final static String BUCKET_NAME = "bbchat-bucket";
+
+    @Value("${bucket-name}")
+    private String BUCKET_NAME;
 
     public void save(String filePath, String fileName, InputStream inputStream, String contentType, String type) {
         ObjectMetadata metadata = new ObjectMetadata();
