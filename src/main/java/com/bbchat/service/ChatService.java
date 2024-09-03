@@ -4,9 +4,11 @@ import com.bbchat.domain.aggregation.ChatAggregation;
 import com.bbchat.domain.chat.Chat;
 import com.bbchat.domain.chat.ChatStatus;
 import com.bbchat.domain.chat.ExclusionKeyword;
+import com.bbchat.domain.chat.MultiBondChatHistory;
 import com.bbchat.repository.ChatAggregationRepository;
 import com.bbchat.repository.ChatRepository;
 import com.bbchat.repository.ExclusionKeywordRepository;
+import com.bbchat.repository.MultiBondChatHistoryRepository;
 import com.bbchat.service.dto.ChatDto;
 import com.bbchat.service.dto.ExclusionKeywordDto;
 import com.bbchat.service.event.ExclusionKeywordEvent;
@@ -31,6 +33,7 @@ public class ChatService {
     private final ExclusionKeywordRepository exclusionKeywordRepository;
     private final ChatParser chatParser;
     private final ChatProcessor chatProcessor;
+    private final MultiBondChatHistoryRepository multiBondChatHistoryRepository;
 
     private final ApplicationEventPublisher publisher;
 
@@ -67,6 +70,8 @@ public class ChatService {
         multiBondChat.setStatus(ChatStatus.SEPARATED);
         separatedChats.forEach(chatProcessor::assignBondByContent);
         chatRepository.saveAll(separatedChats);
+
+        multiBondChatHistoryRepository.save(new MultiBondChatHistory(chatDate, multiBondChat.getContent(), String.join("§", splitContents)));
 
         ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateAndRoomTypeOrderByResultAggregatedDateTimeDesc(chatDate, roomType)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));

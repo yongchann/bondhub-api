@@ -4,16 +4,16 @@ import com.bbchat.domain.aggregation.ChatAggregationResult;
 import com.bbchat.domain.bond.Bond;
 import com.bbchat.domain.chat.Chat;
 import com.bbchat.domain.chat.ChatStatus;
+import com.bbchat.domain.chat.MultiBondChatHistory;
 import com.bbchat.repository.ChatRepository;
+import com.bbchat.repository.MultiBondChatHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -24,6 +24,7 @@ public class ChatProcessor {
     private final ChatParser chatParser;
     private final BondClassifier bondClassifier;
     private final ChatRepository chatRepository;
+    private final MultiBondChatHistoryRepository multiBondChatHistoryRepository;
 
     private final Map<String, String> replacementRules = Map.of(
             "[부국채영]368-9532", "([부국채영]368-9532])",
@@ -34,7 +35,7 @@ public class ChatProcessor {
 
     @Transactional
     public ChatAggregationResult aggregateFromRawContent(String date, String rawContentChat, String roomType) {
-        chatRepository.deleteAllByChatDateAndRoomType(date,roomType);
+        chatRepository.deleteAllByChatDateAndRoomType(date, roomType);
 
         List<Chat> allChats = chatParser.parseChatsFromRawText(date, preprocess(rawContentChat), roomType);
         allChats = new HashSet<>(allChats).stream().toList(); // 내용이 완전히 동일한 채팅 제거
@@ -43,7 +44,22 @@ public class ChatProcessor {
                 .filter(chat -> isSellingMessage(chat.getContent()))
                 .filter(chat -> isAllowedMessage(chat.getContent())) // TODO 국고채도 집계하고자 하는 경우 수정 필요
                 .peek(chat -> chat.modifyStatusByDueDate(chatParser.extractDueDates(chat.getContent())))
-                .toList();
+                .collect(Collectors.toList());
+
+        // 분리된 기록이 있는 복수 종목 호가를 재가공하여 추가
+        List<Chat> sepChats = new ArrayList<>();
+        filteredChats.stream()
+                .filter(chat -> chat.getStatus().equals(ChatStatus.MULTI_DD))
+                .forEach(chat -> {
+                    List<Chat> separatedChats = findSeparationHistory(chat);
+                    if (!separatedChats.isEmpty()) {
+                        sepChats.addAll(separatedChats); // 분리해서 넣기
+                        chat.setStatus(ChatStatus.SEPARATED); // 상태 변경
+                    }
+                });
+
+        filteredChats.addAll(sepChats);
+
         chatRepository.saveAll(filteredChats);
 
         List<Chat> singleDueDateChats = filteredChats.stream()
@@ -59,11 +75,22 @@ public class ChatProcessor {
                 .aggregatedDateTime(LocalDateTime.now())
                 .totalChatCount(allChats.size())
                 .excludedChatCount(allChats.size() - filteredChats.size())
-                .notUsedChatCount(statusCounts.get(ChatStatus.NOT_USED))
-                .multiDueDateChatCount(statusCounts.get(ChatStatus.MULTI_DD))
-                .uncategorizedChatCount(statusCounts.get(ChatStatus.UNCATEGORIZED))
-                .fullyProcessedChatCount(statusCounts.get(ChatStatus.OK))
+                .notUsedChatCount(statusCounts.getOrDefault(ChatStatus.NOT_USED, 0L))
+                .multiDueDateChatCount(statusCounts.getOrDefault(ChatStatus.MULTI_DD, 0L))
+                .uncategorizedChatCount(statusCounts.getOrDefault(ChatStatus.UNCATEGORIZED, 0L))
+                .fullyProcessedChatCount(statusCounts.getOrDefault(ChatStatus.OK, 0L))
                 .build();
+    }
+
+    private List<Chat> findSeparationHistory(Chat originalChat) {
+        Optional<MultiBondChatHistory> cache = multiBondChatHistoryRepository.findByOriginalContent(originalChat.getContent());
+        if (cache.isEmpty()){
+            return List.of();
+        } else {
+            String splitContents = cache.get().getSplitContents();
+            List<String> splitContentList = Arrays.stream(splitContents.split("§")).toList();
+            return chatParser.parseMultiBondChat(originalChat, splitContentList);
+        }
     }
 
     public void assignBondByContent(Chat chat) {
