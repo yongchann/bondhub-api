@@ -33,12 +33,11 @@ public class ChatDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ChatDto chatDto = (ChatDto) o;
-        return Objects.equals(content, chatDto.content);
+        return Objects.equals(sendTime, chatDto.sendTime) && Objects.equals(content, chatDto.content);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(content);
+        return Objects.hash(sendTime, content);
     }
-
 }

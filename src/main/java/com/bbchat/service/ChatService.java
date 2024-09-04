@@ -1,6 +1,7 @@
 package com.bbchat.service;
 
 import com.bbchat.domain.aggregation.ChatAggregation;
+import com.bbchat.domain.bond.Bond;
 import com.bbchat.domain.chat.Chat;
 import com.bbchat.domain.chat.ChatStatus;
 import com.bbchat.domain.chat.ExclusionKeyword;
@@ -9,6 +10,7 @@ import com.bbchat.repository.ChatAggregationRepository;
 import com.bbchat.repository.ChatRepository;
 import com.bbchat.repository.ExclusionKeywordRepository;
 import com.bbchat.repository.MultiBondChatHistoryRepository;
+import com.bbchat.service.dto.BondChatDto;
 import com.bbchat.service.dto.ChatDto;
 import com.bbchat.service.dto.ExclusionKeywordDto;
 import com.bbchat.service.event.ExclusionKeywordEvent;
@@ -18,10 +20,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -136,4 +135,45 @@ public class ChatService {
 
         return name;
     }
+
+    @Transactional
+    public List<BondChatDto> retryForUncategorizedChat(String chatDate, String roomType) {
+        List<Chat> uncategorizedChats = chatRepository.findByChatDateAndRoomTypeAndStatus(chatDate, roomType, ChatStatus.UNCATEGORIZED);
+
+        // 재분류
+        uncategorizedChats.forEach(chatProcessor::assignBondByContent);
+
+        // 집계 업데이트를 위한 조회
+        ChatAggregation aggregation = chatAggregationRepository.findByChatDateAndRoomTypeWithPessimisticLock(chatDate, roomType)
+                .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));
+
+        List<Chat> successChats = uncategorizedChats.stream()
+                .filter(chat -> chat.getStatus().equals(ChatStatus.OK))
+                .toList();
+
+        aggregation.getResult().updateRetrialOfUncategorizedChat(successChats.size());
+
+        return groupByBond(successChats);
+    }
+    private List<BondChatDto> groupByBond(List<Chat> chats) {
+        Map<Bond, BondChatDto> bondMap = new HashMap<>();
+        for (Chat chat : chats) {
+            bondMap.computeIfAbsent(chat.getBond(), k -> BondChatDto.from(chat.getBond())).getChats()
+                    .add(ChatDto.builder()
+                            .chatId(chat.getId())
+                            .sendTime(chat.getSendDateTime())
+                            .content(chat.getContent())
+                            .build());
+        }
+
+        for (BondChatDto bondChatDto : bondMap.values()) {
+            bondChatDto.sortChats();
+        }
+
+        return bondMap.values().stream()
+                .sorted(Comparator.comparing(BondChatDto::getDueDate))
+                .toList();
+    }
+
+
 }

@@ -37,6 +37,11 @@ public class ChatAggregationResult {
                 .build();
     }
 
+    public void updateRetrialOfUncategorizedChat(long fullyProcessedChatCount) {
+        this.uncategorizedChatCount -= fullyProcessedChatCount;
+        this.fullyProcessedChatCount += fullyProcessedChatCount;
+    }
+
     public void updateMultiDueDateSeparation(long uncategorizedChatCount, long fullyProcessedChatCount) {
         this.multiDueDateChatCount -= 1;
         this.uncategorizedChatCount += uncategorizedChatCount;
