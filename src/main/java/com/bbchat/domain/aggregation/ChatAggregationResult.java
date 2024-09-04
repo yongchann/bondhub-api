@@ -50,4 +50,17 @@ public class ChatAggregationResult {
     public void discardUncategorizedChat(long cnt) {
         this.uncategorizedChatCount -= cnt;
     }
+
+    public void updateResult(ChatAggregationResult result) {
+        // 새 결과로 업데이트
+        this.aggregatedDateTime = result.getAggregatedDateTime();
+        this.totalChatCount = result.getTotalChatCount();
+
+        // 이전 결과에 합산
+        this.notUsedChatCount += result.getNotUsedChatCount();
+        this.excludedChatCount += result.getExcludedChatCount();
+        this.multiDueDateChatCount += result.getMultiDueDateChatCount();
+        this.uncategorizedChatCount += result.getUncategorizedChatCount();
+        this.fullyProcessedChatCount += result.getFullyProcessedChatCount();
+    }
 }

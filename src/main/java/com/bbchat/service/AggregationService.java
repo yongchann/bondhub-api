@@ -32,15 +32,14 @@ public class AggregationService {
         String filePath = buildPath(CHAT_FILE_KEY_PREFIX, date, roomType);
         FileInfo file = fileRepository.get(filePath, CHAT_FILE_SAVE_NAME);
 
-        // 집계
-        ChatAggregationResult result = chatProcessor.aggregateFromRawContent(date, file.getContent(), roomType);
+        ChatAggregation aggregation = chatAggregationRepository.findByChatDateAndRoomTypeWithPessimisticLock(date, roomType)
+                .orElseGet(() -> ChatAggregation.createWithEmptyResult(date, roomType));
 
-        // 집계 결과를 토대로 ChatAggregation 생성
-        ChatAggregation aggregation = ChatAggregation.builder()
-                .chatDate(date)
-                .roomType(roomType)
-                .result(result)
-                .build();
+        // 이전 집계에서 확인된 총 채팅 수를 offset 으로 사용
+        long offset = aggregation.getResult().getTotalChatCount();
+
+        ChatAggregationResult result = chatProcessor.aggregateFromRawContentWithOffset(date, file.getContent(), roomType, (int) offset);
+        aggregation.getResult().updateResult(result);
 
         chatAggregationRepository.save(aggregation);
     }
@@ -63,7 +62,7 @@ public class AggregationService {
     }
 
     public ChatAggregationResult getChatAggregation(String date,String roomType) {
-        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateAndRoomTypeOrderByResultAggregatedDateTimeDesc(date, roomType)
+        ChatAggregation aggregation = chatAggregationRepository.findByChatDateAndRoomType(date, roomType)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + date));
 
         return ChatAggregationResult.from(aggregation);
