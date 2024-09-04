@@ -96,7 +96,7 @@ public class BondClassifier {
         for (Map.Entry<String, BondIssuer> entry : aliasToIssuerMap.entrySet()) {
             String alias = entry.getKey();
             BondIssuer bondIssuer = entry.getValue();
-            if (content.contains(alias)) {
+            if (content.toUpperCase().contains(alias.toUpperCase())) {
                 return bondRepository.findByBondIssuerAndDueDate(bondIssuer, dueDate)
                 .orElseGet(() -> bondRepository.save(new Bond(bondIssuer, dueDate)));
             }
