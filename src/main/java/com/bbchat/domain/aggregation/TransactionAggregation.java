@@ -1,6 +1,5 @@
 package com.bbchat.domain.aggregation;
 
-import com.bbchat.domain.report.DailyReport;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,9 +19,5 @@ public class TransactionAggregation {
 
     @Embedded
     private TransactionAggregationResult result;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "daily_report_id")
-    private DailyReport dailyReport;
 
 }

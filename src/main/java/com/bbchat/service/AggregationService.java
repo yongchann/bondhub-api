@@ -4,10 +4,7 @@ import com.bbchat.domain.aggregation.ChatAggregation;
 import com.bbchat.domain.aggregation.ChatAggregationResult;
 import com.bbchat.domain.aggregation.TransactionAggregation;
 import com.bbchat.domain.aggregation.TransactionAggregationResult;
-import com.bbchat.domain.report.DailyReport;
-import com.bbchat.domain.report.ReportStatus;
 import com.bbchat.repository.ChatAggregationRepository;
-import com.bbchat.repository.DailyReportRepository;
 import com.bbchat.repository.TransactionAggregationRepository;
 import com.bbchat.service.exception.NotFoundAggregationException;
 import com.bbchat.support.FileInfo;
@@ -30,8 +27,6 @@ public class AggregationService {
     private final TransactionProcessor transactionProcessor;
     private final TransactionAggregationRepository transactionAggregationRepository;
 
-    private final DailyReportRepository dailyReportRepository;
-
     @Transactional
     public void aggregateChat(String date, String roomType) {
         String filePath = buildPath(CHAT_FILE_KEY_PREFIX, date, roomType);
@@ -40,16 +35,11 @@ public class AggregationService {
         // 집계
         ChatAggregationResult result = chatProcessor.aggregateFromRawContent(date, file.getContent(), roomType);
 
-        // 조회 및 생성(영속화)
-        DailyReport dailyReport = dailyReportRepository.findByReportDateAndStatus(date, ReportStatus.READY)
-                .orElseGet(() -> dailyReportRepository.save(DailyReport.ready(date)));
-
         // 집계 결과를 토대로 ChatAggregation 생성
         ChatAggregation aggregation = ChatAggregation.builder()
                 .chatDate(date)
                 .roomType(roomType)
                 .result(result)
-                .dailyReport(dailyReport)
                 .build();
 
         chatAggregationRepository.save(aggregation);
@@ -63,15 +53,10 @@ public class AggregationService {
         // 집계
         TransactionAggregationResult result = transactionProcessor.aggregateFromInputStream(date, file.getInputStream());
 
-        // 조회 및 생성(영속화)
-        DailyReport dailyReport = dailyReportRepository.findByReportDateAndStatus(date, ReportStatus.READY)
-                .orElseGet(() -> dailyReportRepository.save(DailyReport.ready(date)));
-
         // 집계 결과를 토대로 TransactionAggregation 생성
         TransactionAggregation aggregation = TransactionAggregation.builder()
                 .transactionDate(date)
                 .result(result)
-                .dailyReport(dailyReport)
                 .build();
 
         transactionAggregationRepository.save(aggregation);
