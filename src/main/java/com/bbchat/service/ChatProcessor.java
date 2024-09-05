@@ -34,22 +34,17 @@ public class ChatProcessor {
             "\r\n", " ");
 
     @Transactional
-    public ChatAggregationResult aggregateFromRawContentWithOffset(String date, String rawContentChat, String roomType, int offset) {
+    public ChatAggregationResult aggregateFromRawContent(String date, String rawContentChat, String roomType) {
+        chatRepository.deleteAllByChatDateAndRoomType(date, roomType);
+
         List<Chat> allChats = chatParser.parseChatsFromRawText(date, preprocess(rawContentChat), roomType);
-        if (offset > allChats.size()) {
-            throw new IllegalStateException("offset is greater than total chat size");
-        }
+        allChats = new HashSet<>(allChats).stream().toList(); // 내용이 완전히 동일한 채팅 제거
 
-        List<Chat> targetChats = allChats.subList(offset, allChats.size());
-
-        // targetChats -> offset 이 적용된 대상 채팅들
-        List<Chat> filteredChats = targetChats.stream()
+        List<Chat> filteredChats = allChats.stream()
                 .filter(chat -> isSellingMessage(chat.getContent()))
                 .filter(chat -> isAllowedMessage(chat.getContent())) // TODO 국고채도 집계하고자 하는 경우 수정 필요
                 .peek(chat -> chat.modifyStatusByDueDate(chatParser.extractDueDates(chat.getContent())))
                 .collect(Collectors.toList());
-
-        long excludedChatCount = targetChats.size() - filteredChats.size();
 
         // 분리된 기록이 있는 복수 종목 호가를 재가공하여 추가
         List<Chat> sepChats = new ArrayList<>();
@@ -65,11 +60,13 @@ public class ChatProcessor {
 
         filteredChats.addAll(sepChats);
 
-        filteredChats.stream()
-                .filter(chat -> chat.getStatus().equals(ChatStatus.SINGLE_DD))
-                .forEach(this::assignBondByContent);
-
         chatRepository.saveAll(filteredChats);
+
+        List<Chat> singleDueDateChats = filteredChats.stream()
+                .filter(chat -> chat.getStatus().equals(ChatStatus.SINGLE_DD))
+                .toList();
+
+        singleDueDateChats.forEach(this::assignBondByContent);
 
         Map<ChatStatus, Long> statusCounts = allChats.stream()
                 .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
@@ -77,7 +74,7 @@ public class ChatProcessor {
         return ChatAggregationResult.builder()
                 .aggregatedDateTime(LocalDateTime.now())
                 .totalChatCount(allChats.size())
-                .excludedChatCount(excludedChatCount)
+                .excludedChatCount(allChats.size() - filteredChats.size())
                 .notUsedChatCount(statusCounts.getOrDefault(ChatStatus.NOT_USED, 0L))
                 .multiDueDateChatCount(statusCounts.getOrDefault(ChatStatus.MULTI_DD, 0L))
                 .uncategorizedChatCount(statusCounts.getOrDefault(ChatStatus.UNCATEGORIZED, 0L))

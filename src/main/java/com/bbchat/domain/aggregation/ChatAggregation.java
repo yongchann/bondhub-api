@@ -22,11 +22,4 @@ public class ChatAggregation {
     @Embedded
     private ChatAggregationResult result;
 
-    public static ChatAggregation createWithEmptyResult(String chatDate, String roomType) {
-        return ChatAggregation.builder()
-                .chatDate(chatDate)
-                .roomType(roomType)
-                .result(new ChatAggregationResult())
-                .build();
-    }
 }

@@ -72,7 +72,7 @@ public class ChatService {
 
         multiBondChatHistoryRepository.save(new MultiBondChatHistory(chatDate, multiBondChat.getContent(), String.join("§", splitContents)));
 
-        ChatAggregation aggregation = chatAggregationRepository.findByChatDateAndRoomTypeWithPessimisticLock(chatDate, roomType)
+        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateAndRoomTypeOrderByResultAggregatedDateTimeDesc(chatDate, roomType)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));
 
 
@@ -94,7 +94,7 @@ public class ChatService {
         }
 
         targetChats.forEach(chat -> chat.setStatus(ChatStatus.DISCARDED));
-        ChatAggregation aggregation = chatAggregationRepository.findByChatDateAndRoomTypeWithPessimisticLock(chatDate, roomType)
+        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateAndRoomTypeOrderByResultAggregatedDateTimeDesc(chatDate, roomType)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));
 
         if (targetStatus.equals(ChatStatus.MULTI_DD)) {
