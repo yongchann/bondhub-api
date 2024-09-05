@@ -144,7 +144,7 @@ public class ChatService {
         uncategorizedChats.forEach(chatProcessor::assignBondByContent);
 
         // 집계 업데이트를 위한 조회
-        ChatAggregation aggregation = chatAggregationRepository.findByChatDateAndRoomTypeWithPessimisticLock(chatDate, roomType)
+        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateAndRoomTypeOrderByResultAggregatedDateTimeDesc(chatDate, roomType)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));
 
         List<Chat> successChats = uncategorizedChats.stream()
