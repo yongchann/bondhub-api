@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @RequiredArgsConstructor
 @Component
@@ -20,13 +22,29 @@ public class S3FileRepository {
     @Value("${bucket-name}")
     private String BUCKET_NAME;
 
-    public void save(String filePath, String fileName, InputStream inputStream, String contentType, String type) {
+    public void saveChatFile(String filePath, String fileName, InputStream inputStream, String contentType, String type) {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType(contentType);
         metadata.setContentEncoding("UTF-8");
         metadata.addUserMetadata("type", type);
 
-        String objectKey = filePath + "/" + fileName;
+        String base64Encoded = Base64.getEncoder().encodeToString(fileName.getBytes(StandardCharsets.UTF_8));
+        metadata.addUserMetadata("fileName", base64Encoded);
+
+        String objectKey = filePath + "/chat.txt";
+        s3Client.putObject(BUCKET_NAME, objectKey, inputStream, metadata);
+    }
+
+    public void saveTransactionFile(String filePath, String fileName, InputStream inputStream, String contentType, String type) {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType(contentType);
+        metadata.setContentEncoding("UTF-8");
+        metadata.addUserMetadata("type", type);
+
+        String base64Encoded = Base64.getEncoder().encodeToString(fileName.getBytes(StandardCharsets.UTF_8));
+        metadata.addUserMetadata("fileName", base64Encoded);
+
+        String objectKey = filePath + "/transaction.xlsx";
         s3Client.putObject(BUCKET_NAME, objectKey, inputStream, metadata);
     }
 

@@ -5,25 +5,19 @@ import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
+import java.util.Map;
 
 @Component
 public class FileValidator {
 
-    private static final List<String> ALLOWED_CHAT_FILE_PREFIX = List.of("채권_블커본드", "채권_레드본드", "채권_막무가내");
-    private static final List<String> ALLOWED_TRANSACTION_FILE_PREFIX = Arrays.asList("TX");
-
-    public FileInfo checkChatFileName(String fileName) {
-        return parseChatFileName(fileName);
-    }
+    private static final Map<String, String> VALID_CHAT_FILENAME_MAP = Map.of(
+            "BB", "블커본드",
+            "RB", "레드본드",
+            "MM", "막무가내"
+    );
 
     public String checkTransactionFileName(String fileName) {
-//        if (ALLOWED_TRANSACTION_FILE_PREFIX.stream().noneMatch(fileName::startsWith)) {
-//            throw new IllegalFileNameException(fileName);
-//        }
-
         String[] parts = fileName.split("_");
         if (parts.length < 2) {
             throw new IllegalFileNameException(fileName);
@@ -39,7 +33,12 @@ public class FileValidator {
         }
     }
 
-    public FileInfo parseChatFileName(String fileName) {
+    public FileInfo parseChatFileName(String fileName, String roomType) {
+        String requiredStr = VALID_CHAT_FILENAME_MAP.get(roomType);
+        if (!fileName.contains(requiredStr)) {
+            throw new IllegalFileNameException("파일명은 '채권_%s_yyyyMMdd_HHMMSS.txt' 형식이어야 합니다.".formatted(requiredStr));
+        }
+
         String[] split = fileName.split("_");
 
         String dateString = split[2];
@@ -55,7 +54,7 @@ public class FileValidator {
                     .fileNameDate(formattedDate)
                     .build();
         } catch (ParseException e) {
-            throw new IllegalFileNameException(fileName);
+            throw new IllegalFileNameException("파일명은 '채권_%s_yyyyMMdd_HHMMSS.txt' 형식이어야 합니다.".formatted(requiredStr));
         }
     }
 

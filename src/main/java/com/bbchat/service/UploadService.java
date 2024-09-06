@@ -1,6 +1,5 @@
 package com.bbchat.service;
 
-import com.amazonaws.util.IOUtils;
 import com.bbchat.service.exception.IllegalFileNameException;
 import com.bbchat.support.FileInfo;
 import com.bbchat.support.FileValidator;
@@ -12,10 +11,6 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -31,7 +26,7 @@ public class UploadService {
     public final static String TRANSACTION_FILE_SAVE_NAME = "transaction.xlsx";
 
     public void uploadChatFile(String uploadDate, String roomType, String fileName, InputStream inputStream) throws IOException {
-        FileInfo fileInfo = fileValidator.checkChatFileName(fileName);
+        FileInfo fileInfo = fileValidator.parseChatFileName(fileName, roomType);
         if (!fileInfo.getFileNameDate().equals(uploadDate)) {
             log.warn("this chat file is not created today. dateFromFileName: {}", fileInfo.getFileNameDate());
             throw new IllegalFileNameException("available for chat file of same date only");
@@ -42,7 +37,7 @@ public class UploadService {
         String content = new String(bytes, "EUC-KR");
         InputStream utf8InputStream = new ByteArrayInputStream(content.getBytes());
 
-        fileRepository.save(filePath, "chat.txt", utf8InputStream, "text/plain; charset=UTF-8", "chat");
+        fileRepository.saveChatFile(filePath, fileName, utf8InputStream, "text/plain; charset=UTF-8", "chat");
     }
 
     public void uploadTransactionFile(String uploadDate, String fileName, InputStream inputStream) {
@@ -52,7 +47,7 @@ public class UploadService {
         }
 
         String filePath = S3FileRepository.buildPath(TRANSACTION_FILE_KEY_PREFIX, dateFromFileName);
-        fileRepository.save(filePath, "transaction.xlsx", inputStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "transaction");
+        fileRepository.saveTransactionFile(filePath, "transaction.xlsx", inputStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "transaction");
     }
 
 }
