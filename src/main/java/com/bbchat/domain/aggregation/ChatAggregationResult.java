@@ -17,8 +17,6 @@ public class ChatAggregationResult {
 
     private long notUsedChatCount;
 
-    private long excludedChatCount;
-
     private long multiDueDateChatCount;
 
     private long uncategorizedChatCount;
@@ -27,32 +25,12 @@ public class ChatAggregationResult {
 
     public static ChatAggregationResult from(ChatAggregation entity) {
         return ChatAggregationResult.builder()
-                .aggregatedDateTime(entity.getResult().getAggregatedDateTime())
-                .totalChatCount(entity.getResult().getTotalChatCount())
-                .notUsedChatCount(entity.getResult().getNotUsedChatCount())
-                .excludedChatCount(entity.getResult().getExcludedChatCount())
-                .multiDueDateChatCount(entity.getResult().getMultiDueDateChatCount())
-                .uncategorizedChatCount(entity.getResult().getUncategorizedChatCount())
-                .fullyProcessedChatCount(entity.getResult().getFullyProcessedChatCount())
+                .aggregatedDateTime(entity.getCreatedDate())
+                .totalChatCount(entity.getTotalChatCount())
+                .notUsedChatCount(entity.getNotUsedChatCount())
+                .multiDueDateChatCount(entity.getMultiDueDateChatCount())
+                .uncategorizedChatCount(entity.getUncategorizedChatCount())
+                .fullyProcessedChatCount(entity.getFullyProcessedChatCount())
                 .build();
-    }
-
-    public void updateRetrialOfUncategorizedChat(long fullyProcessedChatCount) {
-        this.uncategorizedChatCount -= fullyProcessedChatCount;
-        this.fullyProcessedChatCount += fullyProcessedChatCount;
-    }
-
-    public void updateMultiDueDateSeparation(long uncategorizedChatCount, long fullyProcessedChatCount) {
-        this.multiDueDateChatCount -= 1;
-        this.uncategorizedChatCount += uncategorizedChatCount;
-        this.fullyProcessedChatCount += fullyProcessedChatCount;
-    }
-
-    public void discardMultiDueDateChat(long cnt) {
-        this.multiDueDateChatCount -= cnt;
-    }
-
-    public void discardUncategorizedChat(long cnt) {
-        this.uncategorizedChatCount -= cnt;
     }
 }

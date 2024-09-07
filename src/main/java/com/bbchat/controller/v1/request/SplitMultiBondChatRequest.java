@@ -13,8 +13,6 @@ public class SplitMultiBondChatRequest {
 
     private String chatDate;
 
-    private String roomType;
-
     private List<String> splitContents;
 
 }

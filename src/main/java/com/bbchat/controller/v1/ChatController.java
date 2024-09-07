@@ -24,28 +24,28 @@ public class ChatController {
     private final BondClassifier classifier;
 
     @GetMapping("/api/v1/chat/uncategorized")
-    public List<ChatDto> findUncategorizedChats(@RequestParam("date") String date, @RequestParam("roomType") String roomType) {
-        return chatService.findUncategorizedChats(date, roomType);
+    public List<ChatDto> findUncategorizedChats(@RequestParam("date") String date) {
+        return chatService.findUncategorizedChats(date);
     }
 
     @PostMapping("/api/v1/chat/uncategorized/retry")
     public List<BondChatDto> retryAggregation(@RequestBody RetryForUncategorizedChatRequest request) {
-        return chatService.retryForUncategorizedChat(request.getDate(), request.getRoomType());
+        return chatService.retryForUncategorizedChat(request.getDate());
     }
 
     @GetMapping("/api/v1/chat/multi-bond")
-    public List<ChatDto> findMultiBondChats(@RequestParam("date") String date, @RequestParam("roomType") String roomType) {
-        return chatService.findMultiBondChats(date, roomType);
+    public List<ChatDto> findMultiBondChats(@RequestParam("date") String date) {
+        return chatService.findMultiBondChats(date);
     }
 
     @PostMapping("/api/v1/chat/multi-bond/split")
     public int splitMultiBondChat(@RequestBody SplitMultiBondChatRequest request) {
-        return chatService.split(request.getChatId(), request.getChatDate(), request.getRoomType(), request.getSplitContents());
+        return chatService.split(request.getChatId(), request.getChatDate(), request.getSplitContents());
     }
 
     @PatchMapping("/api/v1/chat/discard")
     public void discardChats(@RequestParam(name = "status") ChatStatus status, @RequestBody DiscardChatsRequest request) {
-        chatService.discardChats(request.getChatIds(), request.getChatDate(), request.getRoomType(), status);
+        chatService.discardChats(request.getChatIds(), request.getChatDate(), status);
     }
 
     @GetMapping("/api/v1/chat/exclusion-keyword")

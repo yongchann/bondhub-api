@@ -3,6 +3,8 @@ package com.bbchat.domain.chat;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Objects;
+
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -19,11 +21,25 @@ public class MultiBondChatHistory {
 
     private String originalContent;
 
-    private String splitContents;
+    private String joinedContents;
 
-    public MultiBondChatHistory(String chatDate, String originalContent, String splitContents) {
+    public MultiBondChatHistory(String chatDate, String originalContent, String joinedContents) {
         this.chatDate = chatDate;
         this.originalContent = originalContent;
-        this.splitContents = splitContents;
+        this.joinedContents = joinedContents;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MultiBondChatHistory that = (MultiBondChatHistory) o;
+        return Objects.equals(originalContent, that.originalContent);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(originalContent);
     }
 }
+

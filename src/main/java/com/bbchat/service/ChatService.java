@@ -27,18 +27,18 @@ import java.util.stream.Collectors;
 @Service
 public class ChatService {
 
+    private final ChatParser chatParser;
+    private final ChatProcessor chatProcessor;
+
     private final ChatRepository  chatRepository;
     private final ChatAggregationRepository chatAggregationRepository;
     private final ExclusionKeywordRepository exclusionKeywordRepository;
-    private final ChatParser chatParser;
-    private final ChatProcessor chatProcessor;
     private final MultiBondChatHistoryRepository multiBondChatHistoryRepository;
 
     private final ApplicationEventPublisher publisher;
 
-
-    public List<ChatDto> findUncategorizedChats(String chatDate, String roomType) {
-        List<Chat> chats = chatRepository.findByChatDateAndRoomTypeAndStatus(chatDate, roomType, ChatStatus.UNCATEGORIZED);
+    public List<ChatDto> findUncategorizedChats(String chatDate) {
+        List<Chat> chats = chatRepository.findByChatDateAndStatus(chatDate, ChatStatus.UNCATEGORIZED);
         return chats.stream().map(
                         chat -> ChatDto.builder()
                                 .chatId(chat.getId())
@@ -47,8 +47,8 @@ public class ChatService {
                 .toList();
     }
 
-    public List<ChatDto> findMultiBondChats(String chatDate, String roomType) {
-        List<Chat> chats = chatRepository.findByChatDateAndRoomTypeAndStatus(chatDate, roomType, ChatStatus.MULTI_DD);
+    public List<ChatDto> findMultiBondChats(String chatDate) {
+        List<Chat> chats = chatRepository.findByChatDateAndStatus(chatDate, ChatStatus.MULTI_DD);
         return chats.stream().map(
                         chat -> ChatDto.builder()
                                 .chatId(chat.getId())
@@ -58,28 +58,28 @@ public class ChatService {
     }
 
     @Transactional
-    public int split(Long chatId, String chatDate, String roomType, List<String> splitContents) {
-        Chat multiBondChat = chatRepository.findByIdAndChatDateAndRoomTypeAndStatus(chatId, chatDate, roomType, ChatStatus.MULTI_DD)
-                .orElseThrow(() -> new NoSuchElementException("not found multi bond chat, chatId: "+ chatId + " in roomType: " + roomType));
+    public int split(Long chatId, String chatDate, List<String> singleBondContents) {
+        Chat multiBondChat = chatRepository.findByIdAndChatDateAndStatus(chatId, chatDate, ChatStatus.MULTI_DD)
+                .orElseThrow(() -> new NoSuchElementException("not found multi bond chat, chatId: "+ chatId));
 
         // 개별 채팅으로 분리
-        List<Chat> separatedChats = chatParser.parseMultiBondChat(multiBondChat, splitContents);
+        List<Chat> separatedChats = chatParser.parseMultiBondChat(multiBondChat, singleBondContents);
 
         // 개별 채팅에 대해 분류 및 기존 채팅 상태 변경
         multiBondChat.setStatus(ChatStatus.SEPARATED);
         separatedChats.forEach(chatProcessor::assignBondByContent);
         chatRepository.saveAll(separatedChats);
 
-        multiBondChatHistoryRepository.save(new MultiBondChatHistory(chatDate, multiBondChat.getContent(), String.join("§", splitContents)));
+        multiBondChatHistoryRepository.save(new MultiBondChatHistory(chatDate, multiBondChat.getContent(), String.join("§", singleBondContents)));
 
-        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateAndRoomTypeOrderByResultAggregatedDateTimeDesc(chatDate, roomType)
+        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateOrderByCreatedDateDesc(chatDate)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));
 
 
         Map<ChatStatus, Long> statusCounts = separatedChats.stream()
                 .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
 
-        aggregation.getResult().updateMultiDueDateSeparation(
+        aggregation.updateMultiDueDateSeparation(
                 statusCounts.getOrDefault(ChatStatus.UNCATEGORIZED, 0L), // 미분류 채팅 수
                 statusCounts.getOrDefault(ChatStatus.OK, 0L)); // 분류 채팅 수
 
@@ -87,25 +87,24 @@ public class ChatService {
     }
 
     @Transactional
-    public void discardChats(List<Long> chatIds, String chatDate, String roomType, ChatStatus targetStatus) {
-        List<Chat> targetChats = chatRepository.findByChatDateAndRoomTypeAndStatusAndIdIn(chatDate, roomType, targetStatus, chatIds);
+    public void discardChats(List<Long> chatIds, String chatDate, ChatStatus targetStatus) {
+        List<Chat> targetChats = chatRepository.findByChatDateAndStatusAndIdIn(chatDate, targetStatus, chatIds);
         if (chatIds.size() != targetChats.size()) {
             throw new IllegalArgumentException("Mismatch between requested and retrieved chat count.");
         }
 
         targetChats.forEach(chat -> chat.setStatus(ChatStatus.DISCARDED));
-        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateAndRoomTypeOrderByResultAggregatedDateTimeDesc(chatDate, roomType)
+        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateOrderByCreatedDateDesc(chatDate)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));
 
         if (targetStatus.equals(ChatStatus.MULTI_DD)) {
-            aggregation.getResult().discardMultiDueDateChat(targetChats.size());
+            aggregation.discardMultiDueDateChat(targetChats.size());
         } else if (targetStatus.equals(ChatStatus.UNCATEGORIZED)) {
-            aggregation.getResult().discardUncategorizedChat(targetChats.size());
+            aggregation.discardUncategorizedChat(targetChats.size());
         } else {
             throw new IllegalArgumentException("can not discard this type of chat: " + targetChats);
         }
     }
-
     public List<ExclusionKeywordDto> getExclusionKeywords() {
         List<ExclusionKeyword> keywords = exclusionKeywordRepository.findAll();
         return  keywords.stream()
@@ -137,21 +136,21 @@ public class ChatService {
     }
 
     @Transactional
-    public List<BondChatDto> retryForUncategorizedChat(String chatDate, String roomType) {
-        List<Chat> uncategorizedChats = chatRepository.findByChatDateAndRoomTypeAndStatus(chatDate, roomType, ChatStatus.UNCATEGORIZED);
+    public List<BondChatDto> retryForUncategorizedChat(String chatDate) {
+        List<Chat> uncategorizedChats = chatRepository.findByChatDateAndStatus(chatDate, ChatStatus.UNCATEGORIZED);
 
         // 재분류
         uncategorizedChats.forEach(chatProcessor::assignBondByContent);
 
         // 집계 업데이트를 위한 조회
-        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateAndRoomTypeOrderByResultAggregatedDateTimeDesc(chatDate, roomType)
+        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateOrderByCreatedDateDesc(chatDate)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));
 
         List<Chat> successChats = uncategorizedChats.stream()
                 .filter(chat -> chat.getStatus().equals(ChatStatus.OK))
                 .toList();
 
-        aggregation.getResult().updateRetrialOfUncategorizedChat(successChats.size());
+        aggregation.updateRetrialOfUncategorizedChat(successChats.size());
 
         return groupByBond(successChats);
     }

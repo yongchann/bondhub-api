@@ -13,5 +13,4 @@ public class DiscardChatsRequest {
 
     private String chatDate;
 
-    private String roomType;
 }

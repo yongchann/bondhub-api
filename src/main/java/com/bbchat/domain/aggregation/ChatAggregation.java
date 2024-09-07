@@ -1,5 +1,6 @@
 package com.bbchat.domain.aggregation;
 
+import com.bbchat.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,7 +9,7 @@ import lombok.*;
 @Builder
 @Getter
 @Entity
-public class ChatAggregation {
+public class ChatAggregation extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,9 +18,33 @@ public class ChatAggregation {
 
     private String chatDate;
 
-    private String roomType;
+    private long totalChatCount;
 
-    @Embedded
-    private ChatAggregationResult result;
+    private long notUsedChatCount;
+
+    private long multiDueDateChatCount;
+
+    private long uncategorizedChatCount;
+
+    private long fullyProcessedChatCount;
+
+    public void updateRetrialOfUncategorizedChat(long fullyProcessedChatCount) {
+        this.uncategorizedChatCount -= fullyProcessedChatCount;
+        this.fullyProcessedChatCount += fullyProcessedChatCount;
+    }
+
+    public void updateMultiDueDateSeparation(long uncategorizedChatCount, long fullyProcessedChatCount) {
+        this.multiDueDateChatCount -= 1;
+        this.uncategorizedChatCount += uncategorizedChatCount;
+        this.fullyProcessedChatCount += fullyProcessedChatCount;
+    }
+
+    public void discardMultiDueDateChat(long cnt) {
+        this.multiDueDateChatCount -= cnt;
+    }
+
+    public void discardUncategorizedChat(long cnt) {
+        this.uncategorizedChatCount -= cnt;
+    }
 
 }

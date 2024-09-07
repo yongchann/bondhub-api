@@ -1,19 +1,19 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.aggregation.ChatAggregationResult;
 import com.bbchat.domain.bond.Bond;
 import com.bbchat.domain.chat.Chat;
 import com.bbchat.domain.chat.ChatStatus;
 import com.bbchat.domain.chat.MultiBondChatHistory;
-import com.bbchat.repository.ChatRepository;
 import com.bbchat.repository.MultiBondChatHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -23,10 +23,10 @@ public class ChatProcessor {
 
     private final ChatParser chatParser;
     private final BondClassifier bondClassifier;
-    private final ChatRepository chatRepository;
     private final MultiBondChatHistoryRepository multiBondChatHistoryRepository;
 
-    private final Map<String, String> replacementRules = Map.of(
+    private static final List<String> SELLING_KEYWORDS = Arrays.asList("팔자", "매도", "매도 관심", "매도관심", "팔고", "팔거나", "추팔");
+    private static final Map<String, String> REPLACEMENT_RULES = Map.of(
             "[부국채영]368-9532", "([부국채영]368-9532])",
             "(DS투자증권 채권전략팀 02)709-2701)", "(DS투자증권 채권전략팀 02-709-2701)",
             "[흥국채금 6260-2460)", "[흥국채금 6260-2460]",
@@ -34,63 +34,45 @@ public class ChatProcessor {
             "\r\n", " ");
 
     @Transactional
-    public ChatAggregationResult aggregateFromRawContent(String date, String rawContentChat, String roomType) {
-        chatRepository.deleteAllByChatDateAndRoomType(date, roomType);
+    public List<Chat> processChatStr(String date, String rawContentChat) {
+        List<Chat> allChats = chatParser.parseChatsFromRawText(date, rawContentChat)
+                .stream().distinct().toList();
 
-        List<Chat> allChats = chatParser.parseChatsFromRawText(date, preprocess(rawContentChat), roomType);
-        allChats = new HashSet<>(allChats).stream().toList(); // 내용이 완전히 동일한 채팅 제거
-
-        List<Chat> filteredChats = allChats.stream()
-                .filter(chat -> isSellingMessage(chat.getContent()))
-                .filter(chat -> isAllowedMessage(chat.getContent())) // TODO 국고채도 집계하고자 하는 경우 수정 필요
+        // 모든 호가가 NOT_USED, SINGLE_DD, MULTI_DD 로 분류됨
+        List<Chat> askChats = allChats.stream()
+                .filter(chat -> isAskChat(chat.getContent()))
                 .peek(chat -> chat.modifyStatusByDueDate(chatParser.extractDueDates(chat.getContent())))
                 .collect(Collectors.toList());
 
-        // 분리된 기록이 있는 복수 종목 호가를 재가공하여 추가
-        List<Chat> sepChats = new ArrayList<>();
-        filteredChats.stream()
+        // 복수 종목 호가 분리 이력 조회
+        Map<String, String> history = getMultiBondChatHistoryMap();
+        askChats.stream()
                 .filter(chat -> chat.getStatus().equals(ChatStatus.MULTI_DD))
-                .forEach(chat -> {
-                    List<Chat> separatedChats = findSeparationHistory(chat);
-                    if (!separatedChats.isEmpty()) {
-                        sepChats.addAll(separatedChats); // 분리해서 넣기
-                        chat.setStatus(ChatStatus.SEPARATED); // 상태 변경
+                .forEach(multiBondChat -> {
+                    String joinedContents = history.get(multiBondChat.getContent());
+                    if (joinedContents != null) {
+                        multiBondChat.setStatus(ChatStatus.SEPARATED);
+                        List<String> splitContents = chatParser.splitJoinedContents(joinedContents);
+                        askChats.addAll(chatParser.parseMultiBondChat(multiBondChat, splitContents));
                     }
                 });
 
-        filteredChats.addAll(sepChats);
-
-        chatRepository.saveAll(filteredChats);
-
-        List<Chat> singleDueDateChats = filteredChats.stream()
+        // SINGLE_DD 에 대해 채권 할당
+        askChats.stream()
                 .filter(chat -> chat.getStatus().equals(ChatStatus.SINGLE_DD))
-                .toList();
+                .forEach(this::assignBondByContent);
 
-        singleDueDateChats.forEach(this::assignBondByContent);
-
-        Map<ChatStatus, Long> statusCounts = allChats.stream()
-                .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
-
-        return ChatAggregationResult.builder()
-                .aggregatedDateTime(LocalDateTime.now())
-                .totalChatCount(allChats.size())
-                .excludedChatCount(allChats.size() - filteredChats.size())
-                .notUsedChatCount(statusCounts.getOrDefault(ChatStatus.NOT_USED, 0L))
-                .multiDueDateChatCount(statusCounts.getOrDefault(ChatStatus.MULTI_DD, 0L))
-                .uncategorizedChatCount(statusCounts.getOrDefault(ChatStatus.UNCATEGORIZED, 0L))
-                .fullyProcessedChatCount(statusCounts.getOrDefault(ChatStatus.OK, 0L))
-                .build();
+        return allChats;
     }
 
-    private List<Chat> findSeparationHistory(Chat originalChat) {
-        Optional<MultiBondChatHistory> cache = multiBondChatHistoryRepository.findByOriginalContent(originalChat.getContent());
-        if (cache.isEmpty()){
-            return List.of();
-        } else {
-            String splitContents = cache.get().getSplitContents();
-            List<String> splitContentList = Arrays.stream(splitContents.split("§")).toList();
-            return chatParser.parseMultiBondChat(originalChat, splitContentList);
-        }
+    private Map<String, String> getMultiBondChatHistoryMap() {
+        return multiBondChatHistoryRepository.findAll().stream()
+                .collect(Collectors.toMap(
+                        MultiBondChatHistory::getOriginalContent,
+                        MultiBondChatHistory::getJoinedContents,
+                        (existing, replacement) -> existing,
+                        HashMap::new
+                ));
     }
 
     public void assignBondByContent(Chat chat) {
@@ -104,18 +86,18 @@ public class ChatProcessor {
         }
     }
 
-    private boolean isSellingMessage(String content) {
-        return content.contains("팔자");
+    private boolean isAskChat(String content) {
+        return SELLING_KEYWORDS.stream().anyMatch(content::contains);
     }
 
     private boolean isAllowedMessage(String content) {
         return bondClassifier.getExclusionKeywords().stream().noneMatch(content::contains);
     }
 
-    private String preprocess(String rawText) {
+    public String preprocess(String rawText) {
         int index = rawText.indexOf("\r\n");
         rawText = rawText.substring(index + "\r\n".length());
-        for (Map.Entry<String, String> entry : replacementRules.entrySet()) {
+        for (Map.Entry<String, String> entry : REPLACEMENT_RULES.entrySet()) {
             rawText = rawText.replace(entry.getKey(), entry.getValue());
         }
 

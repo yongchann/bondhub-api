@@ -4,6 +4,7 @@ import com.bbchat.domain.bond.BondType;
 import com.bbchat.domain.chat.Chat;
 import com.bbchat.domain.chat.ChatStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,7 +13,9 @@ import java.util.Optional;
 
 public interface ChatRepository extends JpaRepository<Chat, Long> {
 
-    void deleteAllByChatDateAndRoomType(String chatDate, String roomType);
+    @Modifying
+    @Query("DELETE FROM Chat c WHERE c.chatDate = :chatDate")
+    int deleteAllByChatDateInBatch(String chatDate);
 
     @Query("SELECT c FROM Chat c " +
             "JOIN FETCH c.bond b " +
@@ -31,10 +34,10 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
             @Param("grades") List<String> grades
     );
 
-    List<Chat> findByChatDateAndRoomTypeAndStatus(String chatDate, String roomType, ChatStatus status);
+    List<Chat> findByChatDateAndStatus(String chatDate, ChatStatus status);
 
-    List<Chat> findByChatDateAndRoomTypeAndStatusAndIdIn(String chatDate, String roomType, ChatStatus status, List<Long> ids);
+    List<Chat> findByChatDateAndStatusAndIdIn(String chatDate, ChatStatus status, List<Long> ids);
 
-    Optional<Chat> findByIdAndChatDateAndRoomTypeAndStatus(Long id, String chatDate, String roomType, ChatStatus status);
+    Optional<Chat> findByIdAndChatDateAndStatus(Long id, String chatDate, ChatStatus status);
 }
 

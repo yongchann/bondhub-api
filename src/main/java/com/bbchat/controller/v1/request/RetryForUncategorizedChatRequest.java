@@ -8,5 +8,4 @@ import lombok.Getter;
 @Getter
 public class RetryForUncategorizedChatRequest {
     private String date;
-    private String roomType;
 }

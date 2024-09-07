@@ -30,7 +30,6 @@ public class ChatAggregationResponse {
         return ChatAggregationResponse.builder()
                 .lastAggregatedDateTime(result.getAggregatedDateTime())
                 .totalChatCount(result.getTotalChatCount())
-                .excludedChatCount(result.getExcludedChatCount())
                 .notContainDueDateChatCount(result.getNotUsedChatCount())
                 .fullyProcessedChatCount(result.getFullyProcessedChatCount())
                 .multiDueDateChatCount(result.getMultiDueDateChatCount())

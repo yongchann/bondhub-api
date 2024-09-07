@@ -1,23 +1,29 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.bond.Bond;
 import com.bbchat.domain.bond.BondIssuer;
 import com.bbchat.domain.transaction.DailyTransaction;
 import com.bbchat.domain.transaction.TransactionStatus;
 import com.bbchat.repository.DailyTransactionRepository;
 import com.bbchat.service.dto.BondGradeCollisionDto;
 import com.bbchat.service.dto.DailyTransactionDto;
+import com.bbchat.support.FileInfo;
+import com.bbchat.support.S3FileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.bbchat.service.UploadService.*;
+import static com.bbchat.support.S3FileRepository.buildPath;
 
 @RequiredArgsConstructor
 @Service
 public class DailyTransactionService {
 
+    private final S3FileRepository fileRepository;
     private final DailyTransactionRepository transactionRepository;
 
     public List<DailyTransactionDto> findUncategorized(String date) {
@@ -50,6 +56,11 @@ public class DailyTransactionService {
                             bondIssuer.getId(), bondIssuer.getName(), bondIssuer.getGrade(), // 기존 등록된 신용등급
                             tx.getBondName(), tx.getCreditRating()); // 거래 내역에서 추출된 신용등급
                 }).collect(Collectors.toSet()).stream().toList();
+    }
+
+    public InputStream findTransactionFileContent(String date) {
+        FileInfo file = fileRepository.get(buildPath(TRANSACTION_FILE_KEY_PREFIX, date), TRANSACTION_FILE_SAVE_NAME);
+        return file.getInputStream();
     }
 
 }

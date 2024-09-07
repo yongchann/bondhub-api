@@ -19,8 +19,6 @@ public class Chat {
     @Column(name = "chat_id")
     private Long id;
 
-    private String roomType;
-
     private String chatDate;
 
     private String senderName;
@@ -41,13 +39,10 @@ public class Chat {
     private String senderAddress;
 
     public void modifyStatusByDueDate(List<String> dueDateInContent) {
-        if (dueDateInContent.isEmpty()) {
-            status = ChatStatus.NOT_USED;
-            dueDate = "";
-        } else if (dueDateInContent.size() == 1) {
+        if (dueDateInContent.size() == 1) {
             status = ChatStatus.SINGLE_DD;
             dueDate = dueDateInContent.get(0);
-        } else {
+        } else if (dueDateInContent.size() >= 2) {
             status = ChatStatus.MULTI_DD;
             dueDate = "";
         }
@@ -61,13 +56,12 @@ public class Chat {
         this.bond = bond;
     }
 
-    public static Chat fromMultiBondChat(Chat multiBondChat, String splitContent, String dueDate) {
+    public static Chat fromMultiBondChat(Chat multiBondChat, String singleBondContent, String dueDate) {
         return Chat.builder()
                 .chatDate(multiBondChat.getChatDate())
-                .roomType(multiBondChat.getRoomType())
                 .senderName(multiBondChat.getSenderName())
                 .sendDateTime(multiBondChat.getSendDateTime())
-                .content(splitContent)
+                .content(singleBondContent)
                 .senderAddress(multiBondChat.getSenderAddress())
                 .status(ChatStatus.SINGLE_DD)
                 .dueDate(dueDate)
