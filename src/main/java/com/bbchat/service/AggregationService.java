@@ -100,6 +100,11 @@ public class AggregationService {
         return ChatAggregationResult.from(aggregation);
     }
 
+    public List<ChatAggregationResult> getChatAggregationHistory(String date) {
+        List<ChatAggregation> aggregations = chatAggregationRepository.findByChatDateOrderByCreatedDateDesc(date);
+        return aggregations.stream().map(ChatAggregationResult::from).toList();
+    }
+
     public TransactionAggregationResult getTransactionAggregation(String date) {
         TransactionAggregation aggregation = transactionAggregationRepository.findByTransactionDate(date)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + date));

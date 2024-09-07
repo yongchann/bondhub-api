@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RestController
 public class AggregationController {
@@ -26,6 +28,11 @@ public class AggregationController {
     public ChatAggregationResponse getChatAggregation(@RequestParam("date") String date) {
         ChatAggregationResult result = aggregationService.getChatAggregation(date);
         return ChatAggregationResponse.from(result);
+    }
+
+    @GetMapping("/api/v1/aggregation/chat/history")
+    public List<ChatAggregationResult> getChatAggregationHistory(@RequestParam("date") String date) {
+        return aggregationService.getChatAggregationHistory(date);
     }
 
     @PostMapping("/api/v1/aggregation/transaction")
