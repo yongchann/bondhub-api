@@ -10,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,6 +42,7 @@ public class ChatProcessor {
                 .collect(Collectors.toList());
 
         // 복수 종목 호가 분리 이력 조회
+        List<Chat> separatedChats = new ArrayList<>();
         Map<String, String> history = getMultiBondChatHistoryMap();
         askChats.stream()
                 .filter(chat -> chat.getStatus().equals(ChatStatus.MULTI_DD))
@@ -53,9 +51,11 @@ public class ChatProcessor {
                     if (joinedContents != null) {
                         multiBondChat.setStatus(ChatStatus.SEPARATED);
                         List<String> splitContents = chatParser.splitJoinedContents(joinedContents);
-                        askChats.addAll(chatParser.parseMultiBondChat(multiBondChat, splitContents));
+                        separatedChats.addAll(chatParser.parseMultiBondChat(multiBondChat, splitContents));
                     }
                 });
+
+        askChats.addAll(separatedChats);
 
         // SINGLE_DD 에 대해 채권 할당
         askChats.stream()
