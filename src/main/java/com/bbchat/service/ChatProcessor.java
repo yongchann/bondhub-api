@@ -35,15 +35,17 @@ public class ChatProcessor {
         List<Chat> allChats = removeDuplication(chatParser.parseChatsFromRawText(date, rawContentChat));
 
         // 모든 호가가 NOT_USED, SINGLE_DD, MULTI_DD 로 분류됨
-        List<Chat> askChats = allChats.stream()
+        allChats.stream()
                 .filter(chat -> isAskChat(chat.getContent()))
-                .peek(chat -> chat.modifyStatusByDueDate(chatParser.extractDueDates(chat.getContent())))
-                .collect(Collectors.toList());
+                .forEach(chat -> chat.modifyStatusByDueDate(chatParser.extractDueDates(chat.getContent())));
+        log.info("[processChatStr] all chat are filtered and status modified by due date");
 
         // 복수 종목 호가 분리 이력 조회
         List<Chat> separatedChats = new ArrayList<>();
         Map<String, String> history = getMultiBondChatHistoryMap();
-        askChats.stream()
+        log.info("[processChatStr] getMultiBondChatHistoryMap created");
+
+        allChats.stream()
                 .filter(chat -> chat.getStatus().equals(ChatStatus.MULTI_DD))
                 .forEach(multiBondChat -> {
                     String joinedContents = history.get(multiBondChat.getContent());
@@ -54,10 +56,11 @@ public class ChatProcessor {
                     }
                 });
 
-        askChats.addAll(separatedChats);
+        allChats.addAll(separatedChats);
+        log.info("[processChatStr] {} separatedChats are created from multi bond chat history", separatedChats.size());
 
         // SINGLE_DD 에 대해 채권 할당
-        askChats.stream()
+        allChats.stream()
                 .filter(chat -> chat.getStatus().equals(ChatStatus.SINGLE_DD))
                 .forEach(this::assignBondByContent);
 
