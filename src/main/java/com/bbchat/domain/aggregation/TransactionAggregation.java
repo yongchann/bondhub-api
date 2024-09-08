@@ -1,5 +1,6 @@
 package com.bbchat.domain.aggregation;
 
+import com.bbchat.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,7 +9,7 @@ import lombok.*;
 @Builder
 @Getter
 @Entity
-public class TransactionAggregation {
+public class TransactionAggregation extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,7 +18,12 @@ public class TransactionAggregation {
 
     private String transactionDate;
 
-    @Embedded
-    private TransactionAggregationResult result;
+    private long totalTransactionCount;
+
+    private long excludedTransactionCount;
+
+    private long uncategorizedTransactionCount;
+
+    private long fullyProcessedTransactionCount;
 
 }

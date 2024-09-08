@@ -32,8 +32,7 @@ public class ChatProcessor {
 
     @Transactional
     public List<Chat> processChatStr(String date, String rawContentChat) {
-        List<Chat> allChats = chatParser.parseChatsFromRawText(date, rawContentChat)
-                .stream().distinct().toList();
+        List<Chat> allChats = removeDuplication(chatParser.parseChatsFromRawText(date, rawContentChat));
 
         // 모든 호가가 NOT_USED, SINGLE_DD, MULTI_DD 로 분류됨
         List<Chat> askChats = allChats.stream()
@@ -63,6 +62,25 @@ public class ChatProcessor {
                 .forEach(this::assignBondByContent);
 
         return allChats;
+    }
+
+    private ArrayList<Chat> removeDuplication(List<Chat> allChats) {
+        Map<String, Chat> uniqueChats = new HashMap<>();
+
+        for (Chat chat : allChats) {
+            String content = chat.getContent();
+            if (!uniqueChats.containsKey(content) ||
+                    isLaterTime(chat.getSendDateTime(), uniqueChats.get(content).getSendDateTime())) {
+                uniqueChats.put(content, chat);
+            }
+        }
+
+        return new ArrayList<>(uniqueChats.values());
+    }
+
+    private boolean isLaterTime(String time1, String time2) {
+        // HH:MM:SS 형식의 시간 문자열을 비교
+        return time1.compareTo(time2) > 0;
     }
 
     private Map<String, String> getMultiBondChatHistoryMap() {

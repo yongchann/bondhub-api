@@ -21,7 +21,7 @@ public class AggregationController {
 
     @PostMapping("/api/v1/aggregation/all-chat")
     public void aggregateAllDailyChat(@RequestParam("date") String date) {
-        aggregationService.aggregateAll(date);
+        aggregationService.aggregateChat(date);
     }
 
     @GetMapping("/api/v1/aggregation/chat")

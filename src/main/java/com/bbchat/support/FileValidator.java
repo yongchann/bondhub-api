@@ -17,11 +17,18 @@ public class FileValidator {
             "MM", "막무가내"
     );
 
-    public String checkTransactionFileName(String fileName) {
+    private static final String VALID_TRANSACTION_FILENAME_PREFIX = "거래내역";
+
+    public String parseTransactionFileName(String fileName) {
+        if (!fileName.startsWith(VALID_TRANSACTION_FILENAME_PREFIX)) {
+            throw new IllegalFileNameException("파일명은 '거래내역_yyyyMMdd.xlsx' 형식이어야 합니다.");
+        }
+
         String[] parts = fileName.split("_");
         if (parts.length < 2) {
-            throw new IllegalFileNameException(fileName);
+            throw new IllegalFileNameException("파일명은 '거래내역_yyyyMMdd.xlsx' 형식이어야 합니다.");
         }
+
         String dateString = parts[1].split("\\.")[0];
         try {
             SimpleDateFormat inputFormat = new SimpleDateFormat("yyyyMMdd");

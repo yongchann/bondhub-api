@@ -73,11 +73,6 @@ public class DailyTransaction {
         this.bond = bond;
     }
 
-    public void modifyStatusAmbiguous(Bond bond) {
-        this.status = TransactionStatus.AMBIGUOUS_GRADE;
-        this.bond = bond;
-    }
-
     public void modifyStatusNotUsed() {
         this.status = TransactionStatus.NOT_USED;
     }

@@ -4,6 +4,7 @@ import com.bbchat.domain.bond.Bond;
 import com.bbchat.domain.transaction.DailyTransaction;
 import com.bbchat.domain.transaction.TransactionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -23,5 +24,9 @@ public interface DailyTransactionRepository extends JpaRepository<DailyTransacti
     List<DailyTransaction> findByCreatedDate(String transactionDate);
 
     List<DailyTransaction> findByTransactionDateAndStatus(String transactionDate, TransactionStatus status);
+
+    @Modifying
+    @Query("DELETE FROM DailyTransaction dt WHERE dt.transactionDate = :transactionDate")
+    int deleteAllByTransactionDateInBatch(String transactionDate);
 
 }

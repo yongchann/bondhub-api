@@ -1,6 +1,5 @@
 package com.bbchat.service;
 
-import com.bbchat.domain.aggregation.TransactionAggregationResult;
 import com.bbchat.domain.bond.Bond;
 import com.bbchat.domain.transaction.DailyTransaction;
 import com.bbchat.domain.transaction.TransactionStatus;
@@ -14,9 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -30,58 +27,30 @@ public class TransactionProcessor {
     private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
 
     @Transactional
-    public TransactionAggregationResult aggregateFromInputStream(String date, InputStream inputStream) {
-        dailyTransactionRepository.deleteAllByTransactionDate(date);
+    public List<DailyTransaction> processTransactionFileInputStream(String date, InputStream inputStream) {
+        List<DailyTransaction> allTx = parseTransactions(date, inputStream);
 
-        List<DailyTransaction> allDailyTransactions = parseTransactions(inputStream);
-
-        List<DailyTransaction> filteredTransactions = allDailyTransactions.stream()
-                .filter(tx -> !tx.getBondName().contains("조건부"))
-                .filter(tx -> !tx.getMaturityDate().startsWith("99"))
-                .peek(tx -> {
-                    tx.modifyStatusCreated(date);
-                    classify(tx);
-                })
-                .toList();
-
-        Map<TransactionStatus, Long> statusCounts = allDailyTransactions.stream()
-                .collect(Collectors.groupingBy(DailyTransaction::getStatus, Collectors.counting()));
-
-        dailyTransactionRepository.saveAll(filteredTransactions);
-        return TransactionAggregationResult.builder()
-                .aggregatedDateTime(LocalDateTime.now())
-                .totalTransactionCount(allDailyTransactions.size())
-                .excludedTransactionCount(allDailyTransactions.size() - filteredTransactions.size())
-                .ambiguousGradeTransactionCount(statusCounts.get(TransactionStatus.AMBIGUOUS_GRADE))
-                .uncategorizedTransactionCount(statusCounts.get(TransactionStatus.UNCATEGORIZED))
-                .fullyProcessedTransactionCount(statusCounts.get(TransactionStatus.OK))
-                .build();
-
+        for (DailyTransaction tx : allTx) {
+            if (tx.getMaturityDate().startsWith("99") || tx.getBondName().contains("조건부")) {
+                tx.setStatus(TransactionStatus.NOT_USED);
+            } else {
+                assignBondByContent(tx);
+            }
+        }
+        return allTx;
     }
 
-    private void classify(DailyTransaction tx) {
+    public void assignBondByContent(DailyTransaction tx) {
         Bond bond = bondClassifier.extractBond(tx.getBondName(), tx.getMaturityDate());
         if (bond == null) {
             tx.setStatus(TransactionStatus.UNCATEGORIZED);
             log.warn("failed to extract bond from [%s]".formatted(tx.getBondName()));
-            return;
+        } else {
+            tx.modifyStatusOk(bond);
         }
-
-        if (tx.getCreditRating() == null || !tx.getCreditRating().equals(bond.getBondIssuer().getGrade())) {
-            tx.modifyStatusAmbiguous(bond);
-            log.warn("different grade found between tx: %s(%s), bond(database): %s(%s)".formatted(
-                    tx.getBondName(),
-                    tx.getCreditRating() != null ? tx.getCreditRating() : "N/A",
-                    bond.getBondIssuer().getName(),
-                    bond.getBondIssuer().getGrade()
-            ));
-            return;
-        }
-
-        tx.modifyStatusOk(bond);
     }
 
-    public List<DailyTransaction> parseTransactions(InputStream inputStream) {
+    public List<DailyTransaction> parseTransactions(String date, InputStream inputStream) {
         List<DailyTransaction> transactions = new ArrayList<>();
 
         try (Workbook workbook = new XSSFWorkbook(inputStream)) {
@@ -97,7 +66,7 @@ public class TransactionProcessor {
                     continue;
                 }
 
-                transactions.add(rowToDailyTransaction(row));
+                transactions.add(rowToDailyTransaction(date, row));
 
             }
         } catch (Exception e) {
@@ -107,7 +76,7 @@ public class TransactionProcessor {
         return transactions;
     }
 
-    private DailyTransaction rowToDailyTransaction(Row row) {
+    private DailyTransaction rowToDailyTransaction(String date, Row row) {
         return DailyTransaction.builder()
                 .status(TransactionStatus.CREATED)
                 .time(getStringCellValue(row, 0))
@@ -123,7 +92,7 @@ public class TransactionProcessor {
                 .yield(getStringCellValue(row, 10))
                 .price(getStringCellValue(row, 11))
 //                        .settlement(getStringCellValue(row, 12))
-//                        .transactionDate(date)
+                        .transactionDate(date)
                 .standardCode(getStringCellValue(row, 14))
                 .maturityType(getStringCellValue(row, 15))
                 .remainingMaturity(getStringCellValue(row, 16))

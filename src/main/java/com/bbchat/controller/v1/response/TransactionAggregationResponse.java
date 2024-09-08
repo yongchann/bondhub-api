@@ -24,15 +24,12 @@ public class TransactionAggregationResponse {
 
     private long uncategorizedTransactionCount;
 
-    private long ambiguousGradeTransactionCount;
-
     public static TransactionAggregationResponse from(TransactionAggregationResult result) {
         return TransactionAggregationResponse.builder()
                 .lastAggregatedDateTime(result.getAggregatedDateTime())
                 .totalTransactionCount(result.getTotalTransactionCount())
                 .excludedTransactionCount(result.getExcludedTransactionCount())
                 .fullyProcessedTransactionCount(result.getFullyProcessedTransactionCount())
-                .ambiguousGradeTransactionCount(result.getAmbiguousGradeTransactionCount())
                 .uncategorizedTransactionCount(result.getUncategorizedTransactionCount())
                 .build();
     }

@@ -31,9 +31,11 @@ public class UploadController {
     }
 
     @PostMapping("/api/v1/upload/transaction")
-    public ResponseEntity<?> uploadTransactionFile(@RequestParam("date") String date, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> uploadTransactionFile(@RequestParam("date") String date,
+                                                   @RequestParam("fileName") String fileName,
+                                                   @RequestParam("file") MultipartFile file) {
         try {
-            uploadService.uploadTransactionFile(date, file.getOriginalFilename(), file.getInputStream());
+            uploadService.uploadTransactionFile(date, fileName, file.getInputStream());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
