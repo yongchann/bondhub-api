@@ -33,13 +33,13 @@ public class Bond {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bond bond = (Bond) o;
-        return Objects.equals(bondIssuer, bond.bondIssuer) &&
+        return Objects.equals(bondIssuer.getId(), bond.bondIssuer.getId()) &&
                 Objects.equals(dueDate, bond.dueDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bondIssuer, dueDate);
+        return Objects.hash(bondIssuer.getId(), dueDate);
     }
 
 }

@@ -1,7 +1,6 @@
 package com.bbchat.controller.v1;
 
 import com.bbchat.controller.v1.request.InquiryAskRequest;
-import com.bbchat.service.AggregationService;
 import com.bbchat.service.AskService;
 import com.bbchat.service.dto.BondChatDto;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import java.util.List;
 public class AskController {
 
     private final AskService askService;
-    private final AggregationService aggregationService;
 
     @PostMapping("/api/v1/ask/daily")
     public List<BondChatDto> findAsk(@RequestParam("date")String date, @RequestBody InquiryAskRequest request) {

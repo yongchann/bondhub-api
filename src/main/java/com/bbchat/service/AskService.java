@@ -4,9 +4,12 @@ import com.bbchat.domain.MaturityCondition;
 import com.bbchat.domain.bond.Bond;
 import com.bbchat.domain.bond.BondType;
 import com.bbchat.domain.chat.Chat;
+import com.bbchat.domain.transaction.DailyTransaction;
 import com.bbchat.repository.ChatRepository;
+import com.bbchat.repository.DailyTransactionRepository;
 import com.bbchat.service.dto.BondChatDto;
 import com.bbchat.service.dto.ChatDto;
+import com.bbchat.service.dto.DailyTransactionDetailDto;
 import com.bbchat.service.exception.IllegalInquiryParameterException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ import java.util.Map;
 public class AskService {
 
     private final ChatRepository chatRepository;
+    private final DailyTransactionRepository transactionRepository;
 
     public List<BondChatDto> inquiry(String date, BondType bondType, MaturityCondition condition, List<String> grades) {
         String start, end;
@@ -39,9 +43,41 @@ public class AskService {
 
         // 조건에 맞는 채팅 조회
         List<Chat> chats = chatRepository.findValidChatsWithinDueDateRangeAndIssuerGrades(date, bondType, start, end, grades);
+        List<DailyTransaction> transactions = transactionRepository.findByTransactionDateAndBondTypeAndGrades(date, bondType, start, end, grades);
 
-        // 채권에 따라 채팅을 grouping
-        return groupByBond(chats);
+        // 채권에 따라 채팅과 거래 내역을 grouping
+        Map<Bond, BondChatDto> bondMap = new HashMap<>();
+        for (Chat chat : chats) {
+            bondMap.computeIfAbsent(chat.getBond(), k -> BondChatDto.from(chat.getBond()))
+                    .getChats()
+                    .add(new ChatDto(chat.getSendDateTime(), chat.getContent()));
+        }
+
+        // 거래 내역을 순회하며 해당하는 채권에 추가
+        for (DailyTransaction transaction : transactions) {
+            Bond transactionBond = transaction.getBond();
+            if (bondMap.containsKey(transactionBond)) {
+                bondMap.get(transactionBond)
+                        .getTransactions()
+                        .add(new DailyTransactionDetailDto(
+                                transaction.getTime(),
+                                transaction.getYield(),
+                                transaction.getTradingYield(),
+                                transaction.getSpreadBp()
+                        ));
+            }
+            // 채팅이 없는 채권의 거래는 무시 (continue)
+        }
+
+        // 채팅과 거래 내역 정렬
+        for (BondChatDto bondChatDto : bondMap.values()) {
+            bondChatDto.sortChats();
+        }
+
+        // 결과를 만기일 기준으로 정렬하여 반환
+        return bondMap.values().stream()
+                .sorted(Comparator.comparing(BondChatDto::getDueDate))
+                .toList();
     }
 
     private String formatYear(String year) {

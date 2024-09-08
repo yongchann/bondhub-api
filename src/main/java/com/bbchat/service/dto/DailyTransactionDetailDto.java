@@ -9,6 +9,8 @@ import lombok.Getter;
 @Getter
 public class DailyTransactionDetailDto {
 
+    private String time;
+
     private String yield;
 
     private String tradingYield;

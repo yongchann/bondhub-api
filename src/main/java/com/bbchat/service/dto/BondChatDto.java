@@ -19,6 +19,8 @@ public class BondChatDto {
 
     private String grade;
 
+    private List<DailyTransactionDetailDto> transactions;
+
     private List<ChatDto> chats;
 
     public static BondChatDto from(Bond bond) {
@@ -27,6 +29,7 @@ public class BondChatDto {
                 .dueDate(bond.getDueDate())
                 .grade(bond.getBondIssuer().getGrade())
                 .chats(new ArrayList<>())
+                .transactions(new ArrayList<>())
                 .build();
     }
 
