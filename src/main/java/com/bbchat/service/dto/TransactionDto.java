@@ -9,7 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Getter
-public class DailyTransactionDto {
+public class TransactionDto {
 
     private Long id;
 
@@ -17,5 +17,5 @@ public class DailyTransactionDto {
 
     private String dueDate;
 
-    private List<DailyTransactionDetailDto> details;
+    private List<TransactionDetailDto> details;
 }

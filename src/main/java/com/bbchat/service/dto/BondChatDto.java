@@ -19,7 +19,7 @@ public class BondChatDto {
 
     private String grade;
 
-    private List<DailyTransactionDetailDto> transactions;
+    private List<TransactionDetailDto> transactions;
 
     private List<ChatDto> chats;
 

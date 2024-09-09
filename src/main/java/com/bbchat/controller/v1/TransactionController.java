@@ -1,9 +1,9 @@
 package com.bbchat.controller.v1;
 
 import com.bbchat.controller.v1.request.UpdateTransactionNotUsedRequest;
-import com.bbchat.service.DailyTransactionService;
+import com.bbchat.service.TransactionService;
 import com.bbchat.service.dto.BondGradeCollisionDto;
-import com.bbchat.service.dto.DailyTransactionDto;
+import com.bbchat.service.dto.TransactionDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,10 +13,10 @@ import java.util.List;
 @RestController
 public class TransactionController {
 
-    private final DailyTransactionService transactionService;
+    private final TransactionService transactionService;
 
     @GetMapping("/api/v1/transaction/uncategorized")
-    public List<DailyTransactionDto> findUncategorizedTransactions(@RequestParam("date") String date) {
+    public List<TransactionDto> findUncategorizedTransactions(@RequestParam("date") String date) {
         return transactionService.findUncategorized(date);
     }
 

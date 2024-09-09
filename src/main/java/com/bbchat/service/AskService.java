@@ -4,12 +4,12 @@ import com.bbchat.domain.MaturityCondition;
 import com.bbchat.domain.bond.Bond;
 import com.bbchat.domain.bond.BondType;
 import com.bbchat.domain.chat.Chat;
-import com.bbchat.domain.transaction.DailyTransaction;
+import com.bbchat.domain.transaction.Transaction;
 import com.bbchat.repository.ChatRepository;
-import com.bbchat.repository.DailyTransactionRepository;
+import com.bbchat.repository.TransactionRepository;
 import com.bbchat.service.dto.BondChatDto;
 import com.bbchat.service.dto.ChatDto;
-import com.bbchat.service.dto.DailyTransactionDetailDto;
+import com.bbchat.service.dto.TransactionDetailDto;
 import com.bbchat.service.exception.IllegalInquiryParameterException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ import java.util.Map;
 public class AskService {
 
     private final ChatRepository chatRepository;
-    private final DailyTransactionRepository transactionRepository;
+    private final TransactionRepository transactionRepository;
 
     private final BondClassifier bondClassifier;
 
@@ -45,7 +45,7 @@ public class AskService {
 
         // 조건에 맞는 채팅 조회
         List<Chat> chats = chatRepository.findValidChatsWithinDueDateRangeAndIssuerGrades(date, bondType, start, end, grades);
-        List<DailyTransaction> transactions = transactionRepository.findByTransactionDateAndBondTypeAndGrades(date, bondType, start, end, grades);
+        List<Transaction> transactions = transactionRepository.findByTransactionDateAndBondTypeAndGrades(date, bondType, start, end, grades);
 
         // 채권에 따라 채팅과 거래 내역을 grouping
         List<String> exclusionKeywords = bondClassifier.getExclusionKeywords();
@@ -59,12 +59,12 @@ public class AskService {
         }
 
         // 거래 내역을 순회하며 해당하는 채권에 추가
-        for (DailyTransaction transaction : transactions) {
+        for (Transaction transaction : transactions) {
             Bond transactionBond = transaction.getBond();
             if (bondMap.containsKey(transactionBond)) {
                 bondMap.get(transactionBond)
                         .getTransactions()
-                        .add(new DailyTransactionDetailDto(
+                        .add(new TransactionDetailDto(
                                 transaction.getTime(),
                                 transaction.getYield(),
                                 transaction.getTradingYield(),

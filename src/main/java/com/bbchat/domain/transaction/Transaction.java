@@ -9,11 +9,11 @@ import lombok.*;
 @Builder
 @Getter
 @Entity
-public class DailyTransaction {
+public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "daily_transaction_id")
+    @Column(name = "transaction_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)

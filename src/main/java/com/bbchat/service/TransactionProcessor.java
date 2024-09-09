@@ -1,9 +1,9 @@
 package com.bbchat.service;
 
 import com.bbchat.domain.bond.Bond;
-import com.bbchat.domain.transaction.DailyTransaction;
+import com.bbchat.domain.transaction.Transaction;
 import com.bbchat.domain.transaction.TransactionStatus;
-import com.bbchat.repository.DailyTransactionRepository;
+import com.bbchat.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -20,17 +20,17 @@ import java.util.*;
 @Component
 public class TransactionProcessor {
 
-    private final DailyTransactionRepository dailyTransactionRepository;
+    private final TransactionRepository transactionRepository;
     private final BondClassifier bondClassifier;
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
 
     @Transactional
-    public List<DailyTransaction> processTransactionFileInputStream(String date, InputStream inputStream) {
-        List<DailyTransaction> allTx = parseTransactions(date, inputStream);
+    public List<Transaction> processTransactionFileInputStream(String date, InputStream inputStream) {
+        List<Transaction> allTx = parseTransactions(date, inputStream);
 
-        for (DailyTransaction tx : allTx) {
+        for (Transaction tx : allTx) {
             if (tx.getMaturityDate().startsWith("99") || tx.getBondName().contains("조건부")) {
                 tx.setStatus(TransactionStatus.NOT_USED);
             } else {
@@ -40,7 +40,7 @@ public class TransactionProcessor {
         return allTx;
     }
 
-    public void assignBondByContent(DailyTransaction tx) {
+    public void assignBondByContent(Transaction tx) {
         Bond bond = bondClassifier.extractBond(tx.getBondName(), tx.getMaturityDate());
         if (bond == null) {
             tx.setStatus(TransactionStatus.UNCATEGORIZED);
@@ -50,8 +50,8 @@ public class TransactionProcessor {
         }
     }
 
-    public List<DailyTransaction> parseTransactions(String date, InputStream inputStream) {
-        List<DailyTransaction> transactions = new ArrayList<>();
+    public List<Transaction> parseTransactions(String date, InputStream inputStream) {
+        List<Transaction> transactions = new ArrayList<>();
 
         try (Workbook workbook = new XSSFWorkbook(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);  // 첫 번째 시트를 선택
@@ -66,7 +66,7 @@ public class TransactionProcessor {
                     continue;
                 }
 
-                transactions.add(rowToDailyTransaction(date, row));
+                transactions.add(rowToTransaction(date, row));
 
             }
         } catch (Exception e) {
@@ -76,8 +76,8 @@ public class TransactionProcessor {
         return transactions;
     }
 
-    private DailyTransaction rowToDailyTransaction(String date, Row row) {
-        return DailyTransaction.builder()
+    private Transaction rowToTransaction(String date, Row row) {
+        return Transaction.builder()
                 .status(TransactionStatus.CREATED)
                 .time(getStringCellValue(row, 0))
 //                        .marketType(getStringCellValue(row, 1))

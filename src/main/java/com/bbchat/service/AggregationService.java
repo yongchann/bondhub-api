@@ -6,11 +6,11 @@ import com.bbchat.domain.aggregation.TransactionAggregation;
 import com.bbchat.domain.aggregation.TransactionAggregationResult;
 import com.bbchat.domain.chat.Chat;
 import com.bbchat.domain.chat.ChatStatus;
-import com.bbchat.domain.transaction.DailyTransaction;
+import com.bbchat.domain.transaction.Transaction;
 import com.bbchat.domain.transaction.TransactionStatus;
 import com.bbchat.repository.ChatAggregationRepository;
 import com.bbchat.repository.ChatRepository;
-import com.bbchat.repository.DailyTransactionRepository;
+import com.bbchat.repository.TransactionRepository;
 import com.bbchat.repository.TransactionAggregationRepository;
 import com.bbchat.service.exception.NotFoundAggregationException;
 import com.bbchat.support.FileInfo;
@@ -41,8 +41,8 @@ public class AggregationService {
     private final ChatProcessor chatProcessor;
     private final ChatAggregationRepository chatAggregationRepository;
 
-    private final DailyTransactionRepository transactionRepository;
-    private final DailyTransactionService transactionService;
+    private final TransactionRepository transactionRepository;
+    private final TransactionService transactionService;
     private final TransactionProcessor transactionProcessor;
     private final TransactionAggregationRepository transactionAggregationRepository;
 
@@ -90,12 +90,12 @@ public class AggregationService {
         InputStream inputStream = transactionService.findTransactionFileContent(date);
 
         // 집계
-        List<DailyTransaction> allTx = transactionProcessor.processTransactionFileInputStream(date, inputStream);
+        List<Transaction> allTx = transactionProcessor.processTransactionFileInputStream(date, inputStream);
         transactionRepository.saveAll(allTx);
         log.info("[aggregateTransaction] created {} transactions", allTx.size());
 
         Map<TransactionStatus, Long> statusCounts = allTx.stream()
-                .collect(Collectors.groupingBy(DailyTransaction::getStatus, Collectors.counting()));
+                .collect(Collectors.groupingBy(Transaction::getStatus, Collectors.counting()));
 
         // 집계 결과 생성
         TransactionAggregation aggregation = TransactionAggregation.builder()

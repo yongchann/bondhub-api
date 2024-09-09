@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Builder
 @Getter
-public class DailyTransactionDetailDto {
+public class TransactionDetailDto {
 
     private String time;
 
