@@ -28,6 +28,8 @@ public class AskService {
     private final ChatRepository chatRepository;
     private final DailyTransactionRepository transactionRepository;
 
+    private final BondClassifier bondClassifier;
+
     public List<BondChatDto> inquiry(String date, BondType bondType, MaturityCondition condition, List<String> grades) {
         String start, end;
         if (condition.getMaturityInquiryType().equals("remain")) {
@@ -46,11 +48,14 @@ public class AskService {
         List<DailyTransaction> transactions = transactionRepository.findByTransactionDateAndBondTypeAndGrades(date, bondType, start, end, grades);
 
         // 채권에 따라 채팅과 거래 내역을 grouping
+        List<String> exclusionKeywords = bondClassifier.getExclusionKeywords();
         Map<Bond, BondChatDto> bondMap = new HashMap<>();
         for (Chat chat : chats) {
             bondMap.computeIfAbsent(chat.getBond(), k -> BondChatDto.from(chat.getBond()))
                     .getChats()
-                    .add(new ChatDto(chat.getSendDateTime(), chat.getContent()));
+                    .add(new ChatDto(chat.getSendDateTime(),
+                            chat.getContent(),
+                            exclusionKeywords.stream().anyMatch(keyword -> chat.getContent().contains(keyword))));
         }
 
         // 거래 내역을 순회하며 해당하는 채권에 추가
@@ -99,21 +104,6 @@ public class AskService {
     private String calculateDate(String baseDate, int monthsToAdd) {
         LocalDate date = LocalDate.parse(baseDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         return date.plusMonths(monthsToAdd).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-    }
-    private List<BondChatDto> groupByBond(List<Chat> chats) {
-        Map<Bond, BondChatDto> bondMap = new HashMap<>();
-        for (Chat chat : chats) {
-            bondMap.computeIfAbsent(chat.getBond(), k -> BondChatDto.from(chat.getBond())).getChats()
-                    .add(new ChatDto(chat.getSendDateTime(), chat.getContent()));
-        }
-
-        for (BondChatDto bondChatDto : bondMap.values()) {
-            bondChatDto.sortChats();
-        }
-
-        return bondMap.values().stream()
-                .sorted(Comparator.comparing(BondChatDto::getDueDate))
-                .toList();
     }
 
 }
