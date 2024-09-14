@@ -33,4 +33,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("endDueDate") String endDueDate,
             @Param("grades") List<String> grades);
 
+    @Query("SELECT t FROM Transaction t " +
+            "JOIN FETCH t.bond b " +
+            "JOIN FETCH b.bondIssuer bi " +
+            "WHERE t.transactionDate = :transactionDate " +
+            "AND t.status = 'OK'")
+    List<Transaction> findFetchBondAndBondIssuerByTransactionDate(String transactionDate);
+
 }

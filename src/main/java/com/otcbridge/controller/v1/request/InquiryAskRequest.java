@@ -1,6 +1,6 @@
 package com.otcbridge.controller.v1.request;
 
-import com.otcbridge.domain.MaturityCondition;
+import com.otcbridge.domain.ask.MaturityCondition;
 import com.otcbridge.domain.bond.BondType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

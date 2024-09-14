@@ -1,4 +1,4 @@
-package com.otcbridge.domain;
+package com.otcbridge.domain.ask;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

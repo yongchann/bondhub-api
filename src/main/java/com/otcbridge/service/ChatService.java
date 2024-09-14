@@ -157,16 +157,12 @@ public class ChatService {
     private List<BondChatDto> groupByBond(List<Chat> chats) {
         Map<Bond, BondChatDto> bondMap = new HashMap<>();
         for (Chat chat : chats) {
-            bondMap.computeIfAbsent(chat.getBond(), k -> BondChatDto.from(chat.getBond())).getChats()
-                    .add(ChatDto.builder()
+            bondMap.computeIfAbsent(chat.getBond(), k -> BondChatDto.from(chat.getBond()))
+                    .getChats().add(ChatDto.builder()
                             .chatId(chat.getId())
                             .sendTime(chat.getSendDateTime())
                             .content(chat.getContent())
                             .build());
-        }
-
-        for (BondChatDto bondChatDto : bondMap.values()) {
-            bondChatDto.sortChats();
         }
 
         return bondMap.values().stream()

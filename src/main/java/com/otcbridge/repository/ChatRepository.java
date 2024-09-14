@@ -34,6 +34,13 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
             @Param("grades") List<String> grades
     );
 
+    @Query("SELECT c FROM Chat c " +
+            "JOIN FETCH c.bond b " +
+            "JOIN FETCH b.bondIssuer bi " +
+            "WHERE c.chatDate = :chatDate " +
+            "AND c.status = 'OK'")
+    List<Chat> findFetchBondAndBondIssuerByChatDate(String chatDate);
+
     List<Chat> findByChatDateAndStatus(String chatDate, ChatStatus status);
 
     List<Chat> findByChatDateAndStatusAndIdIn(String chatDate, ChatStatus status, List<Long> ids);
