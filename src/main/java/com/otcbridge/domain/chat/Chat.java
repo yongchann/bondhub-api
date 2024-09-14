@@ -34,6 +34,7 @@ public class Chat {
 
     private String dueDate;
 
+    @Column(name = "content", length = 1000)
     private String content;
 
     private String senderAddress;
