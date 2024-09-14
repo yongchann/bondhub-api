@@ -1,0 +1,93 @@
+name: OTC Bridge CI/CD for DEV server
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Clean and Build with Gradle
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean bootJar
+
+      - name: Create environment file
+        env:
+          DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
+          DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
+          DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+        run:
+          echo -e "#!/bin/bash\n" > env_file.sh
+          "export SPRING_PROFILES_ACTIVE='dev'\n" > env_file.sh
+          "export DATASOURCE_URL='${{ secrets.DATASOURCE_URL }}'\n" > env_file.sh
+          "export DATASOURCE_USERNAME='${{ secrets.DATASOURCE_USERNAME }}'\n" >> env_file.sh
+          "export DATASOURCE_PASSWORD='${{ secrets.DATASOURCE_PASSWORD }}'\n" >> env_file.sh
+          "export AWS_ACCESS_KEY='${{ secrets.AWS_ACCESS_KEY }}'\n" >> env_file.sh
+          "export AWS_SECRET_KEY='${{ secrets.AWS_SECRET_KEY }}'\n" >> env_file.sh
+
+      - name: Deploy to EC2
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USERNAME }}
+        run: |
+          echo "$EC2_SSH_KEY" > ec2_key.pem
+          chmod 400 ec2_key.pem
+          scp -o StrictHostKeyChecking=no -i ec2_key.pem \
+            build/libs/otc-bridge-api-0.0.1-SNAPSHOT.jar \
+            .github/deploy/dev.sh \
+            env_file.sh \
+            $EC2_USER@$EC2_HOST:/home/ec2-user/
+          ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_HOST << 'EOF'
+            sudo chmod +x /home/ec2-user/dev.sh
+            /home/ec2-user/dev.sh
+          EOF
+          
+          rm -f ec2_key.pem
+      # 빌드 성공 메세지 발송
+      - name: Send Build Success Message
+        uses: appleboy/telegram-action@master
+        if: success()
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            Author: ${{github.actor}}
+            
+            Status: 😚 **Success**
+            
+            Commit message: ${{ github.event.commits[0].message }}
+            
+            [See changes](https://github.com/${{ github.repository }}/commit/${{github.sha}})
+
+      # 빌드 실패 메세지 발송
+      - name: Send Build Success Message
+        uses: appleboy/telegram-action@master
+        if: failure()
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            Author: ${{github.actor}}
+            
+            Status: 😱 **Failure**
+            
+            Commit message: ${{ github.event.commits[0].message }}
+            
+            [link](https://github.com/${{ github.repository }}/actions)
