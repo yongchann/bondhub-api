@@ -6,10 +6,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @EnableJpaAuditing
 @SpringBootApplication
-public class BbchatApplication {
+public class OtcBridgeApiApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(BbchatApplication.class, args);
+		SpringApplication.run(OtcBridgeApiApplication.class, args);
 	}
 
 }
