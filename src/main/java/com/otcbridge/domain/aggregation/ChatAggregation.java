@@ -1,8 +1,11 @@
 package com.otcbridge.domain.aggregation;
 
+import com.otcbridge.domain.chat.ChatStatus;
 import com.otcbridge.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.Map;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -27,6 +30,24 @@ public class ChatAggregation extends BaseTimeEntity {
     private long uncategorizedChatCount;
 
     private long fullyProcessedChatCount;
+
+    public static ChatAggregation create(String chatDate) {
+        return ChatAggregation.builder()
+                .chatDate(chatDate)
+                .build();
+    }
+
+    public void update(Map<ChatStatus, Long> statusCounts) {
+        long totalCount = statusCounts.values().stream()
+                .mapToLong(Long::longValue)
+                .sum();
+
+        this.totalChatCount += totalCount;
+        this.notUsedChatCount += statusCounts.getOrDefault(ChatStatus.CREATED, 0L);
+        this.multiDueDateChatCount += statusCounts.getOrDefault(ChatStatus.MULTI_DD, 0L);
+        this.uncategorizedChatCount += statusCounts.getOrDefault(ChatStatus.UNCATEGORIZED, 0L);
+        this.fullyProcessedChatCount += statusCounts.getOrDefault(ChatStatus.OK, 0L);
+    }
 
     public void updateRetrialOfUncategorizedChat(long fullyProcessedChatCount) {
         this.uncategorizedChatCount -= fullyProcessedChatCount;

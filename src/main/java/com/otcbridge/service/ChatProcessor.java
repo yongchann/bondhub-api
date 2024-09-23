@@ -5,6 +5,7 @@ import com.otcbridge.domain.chat.Chat;
 import com.otcbridge.domain.chat.ChatStatus;
 import com.otcbridge.domain.chat.MultiBondChatHistory;
 import com.otcbridge.repository.MultiBondChatHistoryRepository;
+import com.otcbridge.service.dto.ChatDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -58,6 +59,52 @@ public class ChatProcessor {
 
         allChats.addAll(separatedChats);
         log.info("[processChatStr] {} separatedChats are created from multi bond chat history", separatedChats.size());
+
+        // SINGLE_DD 에 대해 채권 할당
+        allChats.stream()
+                .filter(chat -> chat.getStatus().equals(ChatStatus.SINGLE_DD))
+                .forEach(this::assignBondByContent);
+
+        return allChats;
+    }
+
+    @Transactional
+    public List<Chat> convertToEntity(String date, List<ChatDto> chatDtos) {
+        List<Chat> allChats = chatDtos.stream()
+                .map(chat -> Chat.builder()
+                        .chatDate(date)
+                        .senderName(chat.getSenderName())
+                        .sendDateTime(chat.getSendTime())
+                        .content(chat.getContent())
+                        .senderAddress(chat.getSenderAddress())
+                        .status(ChatStatus.CREATED)
+                        .build())
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        // 모든 호가가 NOT_USED, SINGLE_DD, MULTI_DD 로 분류됨
+        allChats.stream()
+                .filter(chat -> isAskChat(chat.getContent()))
+                .forEach(chat -> chat.modifyStatusByDueDate(chatParser.extractDueDates(chat.getContent())));
+        log.info("[processChat] all chat are filtered and status modified by due date");
+
+        // 복수 종목 호가 분리 이력 조회
+        List<Chat> separatedChats = new ArrayList<>();
+        Map<String, String> history = getMultiBondChatHistoryMap();
+        log.info("[processChat] getMultiBondChatHistoryMap created");
+
+        allChats.stream()
+                .filter(chat -> chat.getStatus().equals(ChatStatus.MULTI_DD))
+                .forEach(multiBondChat -> {
+                    String joinedContents = history.get(multiBondChat.getContent());
+                    if (joinedContents != null) {
+                        multiBondChat.setStatus(ChatStatus.SEPARATED);
+                        List<String> splitContents = chatParser.splitJoinedContents(joinedContents);
+                        separatedChats.addAll(chatParser.parseMultiBondChat(multiBondChat, splitContents));
+                    }
+                });
+
+        allChats.addAll(separatedChats);
+        log.info("[processChat] {} separatedChats are created from multi bond chat history", separatedChats.size());
 
         // SINGLE_DD 에 대해 채권 할당
         allChats.stream()

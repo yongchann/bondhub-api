@@ -170,5 +170,18 @@ public class ChatService {
                 .toList();
     }
 
+    @Transactional
+    public void append(String chatDate, List<ChatDto> recentChats) {
+        List<Chat> chats = chatProcessor.convertToEntity(chatDate, recentChats);
 
+        // 채팅 가공 상태에 따른 집계 결과를 생성
+        Map<ChatStatus, Long> statusCounts = chats.stream()
+                .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
+
+        ChatAggregation chatAggregation = chatAggregationRepository.findByChatDateWithPessimisticLock(chatDate)
+                .orElseGet(() -> chatAggregationRepository.save(ChatAggregation.create(chatDate)));
+
+        chatAggregation.update(statusCounts);
+        chatRepository.saveAll(chats);
+    }
 }

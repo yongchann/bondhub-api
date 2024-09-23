@@ -1,12 +1,8 @@
 package com.otcbridge.controller.v1;
 
-import com.otcbridge.controller.v1.request.CreateExclusionKeywordRequest;
-import com.otcbridge.controller.v1.request.DiscardChatsRequest;
-import com.otcbridge.controller.v1.request.RetryForUncategorizedChatRequest;
-import com.otcbridge.controller.v1.request.SplitMultiBondChatRequest;
+import com.otcbridge.controller.v1.request.*;
 import com.otcbridge.controller.v1.response.ExclusionKeywordResponse;
 import com.otcbridge.domain.chat.ChatStatus;
-import com.otcbridge.service.BondClassifier;
 import com.otcbridge.service.ChatService;
 import com.otcbridge.service.dto.BondChatDto;
 import com.otcbridge.service.dto.ChatDto;
@@ -21,7 +17,21 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
-    private final BondClassifier classifier;
+
+    @PostMapping("/api/v1/chat/recent")
+    public void appendRecentChats(@RequestBody AppendRecentChatRequest request) {
+        List<ChatDto> recentChats = request.getRecentChats().stream()
+                .map(chat -> ChatDto.builder()
+                        .chatDate(request.getChatDate())
+                        .senderName(chat.getSenderName())
+                        .sendTime(chat.getSendTime())
+                        .content(chat.getContent())
+                        .senderAddress(chat.getSenderAddress())
+                        .build())
+                .toList();
+
+        chatService.append(request.getChatDate(), recentChats);
+    }
 
     @GetMapping("/api/v1/chat/uncategorized")
     public List<ChatDto> findUncategorizedChats(@RequestParam("date") String date) {

@@ -25,7 +25,7 @@ public class ChatAggregationResult {
 
     public static ChatAggregationResult from(ChatAggregation entity) {
         return ChatAggregationResult.builder()
-                .aggregatedDateTime(entity.getCreatedDate())
+                .aggregatedDateTime(entity.getModifiedDate())
                 .totalChatCount(entity.getTotalChatCount())
                 .notUsedChatCount(entity.getNotUsedChatCount())
                 .multiDueDateChatCount(entity.getMultiDueDateChatCount())
