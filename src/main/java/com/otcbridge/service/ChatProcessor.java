@@ -114,7 +114,7 @@ public class ChatProcessor {
         return allChats;
     }
 
-    private ArrayList<Chat> removeDuplication(List<Chat> allChats) {
+    public ArrayList<Chat> removeDuplication(List<Chat> allChats) {
         Map<String, Chat> uniqueChats = new HashMap<>();
 
         for (Chat chat : allChats) {

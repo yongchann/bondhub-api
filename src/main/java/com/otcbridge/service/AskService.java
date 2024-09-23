@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 public class AskService {
 
     private final ChatRepository chatRepository;
+    private final ChatProcessor chatProcessor;
     private final TransactionRepository transactionRepository;
 
     private final BondClassifier bondClassifier;
@@ -43,9 +44,11 @@ public class AskService {
 
         // 조건에 맞는 채팅 조회
         List<Chat> chats = chatRepository.findValidChatsWithinDueDateRangeAndIssuerGrades(date, bondType, start, end, grades);
+        ArrayList<Chat> uniqueChats = chatProcessor.removeDuplication(chats);
+
         List<Transaction> transactions = transactionRepository.findByTransactionDateAndBondTypeAndGrades(date, bondType, start, end, grades);
 
-        return convertToAsk(chats, transactions);
+        return convertToAsk(uniqueChats, transactions);
     }
 
     public Map<BondType, List<Ask>> findAllAsk(String date) {
