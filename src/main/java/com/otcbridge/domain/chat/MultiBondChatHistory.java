@@ -19,6 +19,7 @@ public class MultiBondChatHistory {
 
     private String chatDate;
 
+    @Column(unique = true, length = 2000)
     private String originalContent;
 
     private String joinedContents;

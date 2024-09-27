@@ -10,9 +10,7 @@ import com.otcbridge.repository.ChatAggregationRepository;
 import com.otcbridge.repository.ChatRepository;
 import com.otcbridge.repository.ExclusionKeywordRepository;
 import com.otcbridge.repository.MultiBondChatHistoryRepository;
-import com.otcbridge.service.dto.BondChatDto;
-import com.otcbridge.service.dto.ChatDto;
-import com.otcbridge.service.dto.ExclusionKeywordDto;
+import com.otcbridge.service.dto.*;
 import com.otcbridge.service.event.ExclusionKeywordEvent;
 import com.otcbridge.service.exception.NotFoundAggregationException;
 import lombok.RequiredArgsConstructor;
@@ -37,49 +35,65 @@ public class ChatService {
 
     private final ApplicationEventPublisher publisher;
 
-    public List<ChatDto> findUncategorizedChats(String chatDate) {
+    public List<UncategorizedChatDto> findUncategorizedChats(String chatDate) {
         List<Chat> chats = chatRepository.findByChatDateAndStatus(chatDate, ChatStatus.UNCATEGORIZED);
-        return chats.stream().map(
-                        chat -> ChatDto.builder()
-                                .chatId(chat.getId())
-                                .content(chat.getContent())
-                                .build())
-                .toList();
+        Map<String, List<Chat>> groupedByContent = chats.stream().collect(Collectors.groupingBy(Chat::getContent));
+
+        List<UncategorizedChatDto> result = new ArrayList<>();
+        groupedByContent.forEach((content, value) -> {
+            List<Long> ids = value.stream().map(Chat::getId).toList();
+            result.add(new UncategorizedChatDto(content, ids));
+        });
+
+        result.sort((c1, c2) -> Integer.compare(c2.getIds().size(), c1.getIds().size()));
+        return result;
     }
 
-    public List<ChatDto> findMultiBondChats(String chatDate) {
+    public List<MultiBondChatDto> findMultiBondChats(String chatDate) {
         List<Chat> chats = chatRepository.findByChatDateAndStatus(chatDate, ChatStatus.MULTI_DD);
-        return chats.stream().map(
-                        chat -> ChatDto.builder()
-                                .chatId(chat.getId())
-                                .content(chat.getContent())
-                                .build())
-                .toList();
+        Map<String, List<Chat>> groupedByContent = chats.stream().collect(Collectors.groupingBy(Chat::getContent));
+
+        List<MultiBondChatDto> result = new ArrayList<>();
+        groupedByContent.forEach((content, value) -> {
+            List<Long> ids = value.stream().map(Chat::getId).toList();
+            result.add(new MultiBondChatDto(content, ids));
+        });
+
+        result.sort((c1, c2) -> Integer.compare(c2.getIds().size(), c1.getIds().size()));
+        return result;
     }
 
     @Transactional
-    public int split(Long chatId, String chatDate, List<String> singleBondContents) {
-        Chat multiBondChat = chatRepository.findByIdAndChatDateAndStatus(chatId, chatDate, ChatStatus.MULTI_DD)
-                .orElseThrow(() -> new NoSuchElementException("not found multi bond chat, chatId: "+ chatId));
+    public int split(String chatDate, List<Long> targetIds, String originalContent, List<String> singleBondContents) {
+        List<Chat> multiBondChats = chatRepository.findByChatDateAndStatusAndIdIn(chatDate, ChatStatus.MULTI_DD, targetIds);
+        if (multiBondChats.isEmpty()) {
+            throw new IllegalArgumentException("대상 복수 종목 호가가 올바르지 않습니다.");
+        }
+        if (multiBondChats.stream().anyMatch(chat -> !Objects.equals(chat.getContent(), originalContent))) {
+            throw new IllegalArgumentException("조회된 복수 종목 호가의 내용이 올바르지 않습니다.");
+        }
 
-        // 개별 채팅으로 분리
-        List<Chat> separatedChats = chatParser.parseMultiBondChat(multiBondChat, singleBondContents);
+        // 복수 종목 호가를 n 개로 분리
+        List<Chat> separatedChats = chatParser.parseMultiBondChat(multiBondChats.get(0), singleBondContents);
 
         // 개별 채팅에 대해 분류 및 기존 채팅 상태 변경
-        multiBondChat.setStatus(ChatStatus.SEPARATED);
+        multiBondChats.forEach(chat ->  chat.setStatus(ChatStatus.SEPARATED));
         separatedChats.forEach(chatProcessor::assignBondByContent);
         chatRepository.saveAll(separatedChats);
 
-        multiBondChatHistoryRepository.save(new MultiBondChatHistory(chatDate, multiBondChat.getContent(), String.join("§", singleBondContents)));
+        // 분리 이력 추가
+        String joinedContents = chatParser.joinContents(separatedChats.stream().map(Chat::getContent).toList());
+        multiBondChatHistoryRepository.save(new MultiBondChatHistory(chatDate, originalContent, joinedContents));
 
-        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateOrderByCreatedDateDesc(chatDate)
+        // 집계 업데이트
+        ChatAggregation aggregation = chatAggregationRepository.findByChatDateWithPessimisticLock(chatDate)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));
-
 
         Map<ChatStatus, Long> statusCounts = separatedChats.stream()
                 .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
 
         aggregation.updateMultiDueDateSeparation(
+                multiBondChats.size(),
                 statusCounts.getOrDefault(ChatStatus.UNCATEGORIZED, 0L), // 미분류 채팅 수
                 statusCounts.getOrDefault(ChatStatus.OK, 0L)); // 분류 채팅 수
 
@@ -87,7 +101,7 @@ public class ChatService {
     }
 
     @Transactional
-    public void discardChats(List<Long> chatIds, String chatDate, ChatStatus targetStatus) {
+    public void discardChats(String chatDate, ChatStatus targetStatus, List<Long> chatIds) {
         List<Chat> targetChats = chatRepository.findByChatDateAndStatusAndIdIn(chatDate, targetStatus, chatIds);
         if (chatIds.size() != targetChats.size()) {
             throw new IllegalArgumentException("Mismatch between requested and retrieved chat count.");

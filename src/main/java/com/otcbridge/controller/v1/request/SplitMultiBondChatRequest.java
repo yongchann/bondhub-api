@@ -9,7 +9,9 @@ import java.util.List;
 @Getter
 public class SplitMultiBondChatRequest {
 
-    private Long chatId;
+    private List<Long> ids;
+
+    private String originalContent;
 
     private String chatDate;
 

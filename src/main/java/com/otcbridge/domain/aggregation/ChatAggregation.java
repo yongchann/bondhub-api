@@ -54,8 +54,8 @@ public class ChatAggregation extends BaseTimeEntity {
         this.fullyProcessedChatCount += fullyProcessedChatCount;
     }
 
-    public void updateMultiDueDateSeparation(long uncategorizedChatCount, long fullyProcessedChatCount) {
-        this.multiDueDateChatCount -= 1;
+    public void updateMultiDueDateSeparation(long multiBondChatCount, long uncategorizedChatCount, long fullyProcessedChatCount) {
+        this.multiDueDateChatCount -= multiBondChatCount;
         this.uncategorizedChatCount += uncategorizedChatCount;
         this.fullyProcessedChatCount += fullyProcessedChatCount;
     }

@@ -2,11 +2,8 @@ package com.otcbridge.controller.v1;
 
 import com.otcbridge.controller.v1.request.*;
 import com.otcbridge.controller.v1.response.ExclusionKeywordResponse;
-import com.otcbridge.domain.chat.ChatStatus;
 import com.otcbridge.service.ChatService;
-import com.otcbridge.service.dto.BondChatDto;
-import com.otcbridge.service.dto.ChatDto;
-import com.otcbridge.service.dto.ExclusionKeywordDto;
+import com.otcbridge.service.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +31,7 @@ public class ChatController {
     }
 
     @GetMapping("/api/v1/chat/uncategorized")
-    public List<ChatDto> findUncategorizedChats(@RequestParam("date") String date) {
+    public List<UncategorizedChatDto> findUncategorizedChats(@RequestParam("date") String date) {
         return chatService.findUncategorizedChats(date);
     }
 
@@ -44,18 +41,18 @@ public class ChatController {
     }
 
     @GetMapping("/api/v1/chat/multi-bond")
-    public List<ChatDto> findMultiBondChats(@RequestParam("date") String date) {
+    public List<MultiBondChatDto> findMultiBondChats(@RequestParam("date") String date) {
         return chatService.findMultiBondChats(date);
     }
 
     @PostMapping("/api/v1/chat/multi-bond/split")
     public int splitMultiBondChat(@RequestBody SplitMultiBondChatRequest request) {
-        return chatService.split(request.getChatId(), request.getChatDate(), request.getSplitContents());
+        return chatService.split(request.getChatDate(), request.getIds(), request.getOriginalContent(), request.getSplitContents());
     }
 
     @PatchMapping("/api/v1/chat/discard")
-    public void discardChats(@RequestParam(name = "status") ChatStatus status, @RequestBody DiscardChatsRequest request) {
-        chatService.discardChats(request.getChatIds(), request.getChatDate(), status);
+    public void discardChats(@RequestBody DiscardChatsRequest request) {
+        chatService.discardChats(request.getChatDate(), request.getStatus(), request.getChatIds());
     }
 
     @GetMapping("/api/v1/chat/exclusion-keyword")
