@@ -20,4 +20,8 @@ public class BondAlias {
     private BondIssuer bondIssuer;
 
     private String name;
+
+    public void changeName(String name) {
+        this.name = name;
+    }
 }

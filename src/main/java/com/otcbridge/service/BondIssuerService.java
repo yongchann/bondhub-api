@@ -7,7 +7,9 @@ import com.otcbridge.repository.BondAliasRepository;
 import com.otcbridge.repository.BondIssuerRepository;
 import com.otcbridge.service.dto.BondAliasDto;
 import com.otcbridge.service.dto.BondIssuerDto;
+import com.otcbridge.service.event.BondAliasEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,8 @@ public class BondIssuerService {
 
     private final BondIssuerRepository bondIssuerRepository;
     private final BondAliasRepository bondAliasRepository;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     public List<BondIssuerDto> getBondIssuersWithAliases() {
 
@@ -52,6 +56,12 @@ public class BondIssuerService {
         BondIssuer bondIssuer = bondIssuerRepository.findById(bondIssuerId)
                 .orElseThrow(() -> new NoSuchElementException("not found bond issuer id" + bondIssuerId));
 
+
+        String originalName = bondIssuer.getName();
+
+        BondAlias defaultBondAlias = bondAliasRepository.findByName(bondIssuer.getName())
+                .orElseThrow(() -> new NoSuchElementException("not found bond alias name" + originalName));
+
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("bond issuer name is empty");
         }
@@ -61,6 +71,10 @@ public class BondIssuerService {
         }
 
         bondIssuer.modify(name,grade);
+        defaultBondAlias.changeName(name);
+
+        eventPublisher.publishEvent(new BondAliasEvent(this, BondAliasEvent.Type.DELETED, "bond alias changed, original name: ", originalName));
+        eventPublisher.publishEvent(new BondAliasEvent(this, BondAliasEvent.Type.CREATED, "bond alias changed, new name: ", name));
     }
 
     @Transactional
@@ -81,6 +95,8 @@ public class BondIssuerService {
                 .name(name)
                 .build();
         bondAliasRepository.save(defaultAlias);
+
+        eventPublisher.publishEvent(new BondAliasEvent(this, BondAliasEvent.Type.CREATED, "bond alias created", defaultAlias.getName()));
 
         return new BondIssuerDto(
                 newBondIssuer.getId(),
