@@ -1,5 +1,6 @@
 package com.otcbridge.domain.bond;
 
+import com.otcbridge.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,7 +9,7 @@ import lombok.*;
 @Builder
 @Getter
 @Entity
-public class BondAlias {
+public class BondAlias extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

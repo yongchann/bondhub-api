@@ -23,7 +23,7 @@ public class TransactionAggregationResult {
 
     public static TransactionAggregationResult from(TransactionAggregation entity) {
         return TransactionAggregationResult.builder()
-                .aggregatedDateTime(entity.getCreatedDate())
+                .aggregatedDateTime(entity.getCreatedDateTime())
                 .totalTransactionCount(entity.getTotalTransactionCount())
                 .excludedTransactionCount(entity.getExcludedTransactionCount())
                 .fullyProcessedTransactionCount(entity.getFullyProcessedTransactionCount())
