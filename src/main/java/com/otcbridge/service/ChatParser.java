@@ -87,6 +87,7 @@ public class ChatParser {
     public List<Chat> parseMultiBondChat(Chat multiBondChat, List<String> singleBondContents) {
         List<Chat> singleBondChats = new ArrayList<>();
         for (String singleBondContent : singleBondContents) {
+            singleBondContent = singleBondContent.trim();
             if (!multiBondChat.getContent().contains(singleBondContent)) {
                 throw new IllegalArgumentException("invalid split content, org chat doesn't contain " + singleBondContent);
             }
