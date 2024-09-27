@@ -11,14 +11,12 @@ import java.util.Optional;
 
 public interface ChatAggregationRepository extends JpaRepository<ChatAggregation, Long> {
 
-    Optional<ChatAggregation> findTopByChatDateOrderByCreatedDateDesc(String chatDate);
-
-    List<ChatAggregation> findByChatDateOrderByCreatedDateDesc(String chatDate);
+    Optional<ChatAggregation> findByChatDate(String chatDate);
 
     @Query("SELECT ca " +
             "FROM ChatAggregation ca " +
             "WHERE ca.chatDate = :chatDate")
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Lock(LockModeType.PESSIMISTIC_READ)
     Optional<ChatAggregation> findByChatDateWithPessimisticLock(String chatDate);
 
 }

@@ -110,19 +110,14 @@ public class AggregationService {
     }
 
     public ChatAggregationResult getChatAggregation(String date) {
-        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateOrderByCreatedDateDesc(date)
+        ChatAggregation aggregation = chatAggregationRepository.findByChatDate(date)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + date));
 
         return ChatAggregationResult.from(aggregation);
     }
 
-    public List<ChatAggregationResult> getChatAggregationHistory(String date) {
-        List<ChatAggregation> aggregations = chatAggregationRepository.findByChatDateOrderByCreatedDateDesc(date);
-        return aggregations.stream().map(ChatAggregationResult::from).toList();
-    }
-
     public TransactionAggregationResult getTransactionAggregation(String date) {
-        TransactionAggregation aggregation = transactionAggregationRepository.findTopByTransactionDateOrderByCreatedDateDesc(date)
+        TransactionAggregation aggregation = transactionAggregationRepository.findTopByTransactionDateOrderByCreatedDateTimeDesc(date)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + date));
 
         return TransactionAggregationResult.from(aggregation);

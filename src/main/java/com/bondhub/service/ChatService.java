@@ -108,7 +108,7 @@ public class ChatService {
         }
 
         targetChats.forEach(chat -> chat.setStatus(ChatStatus.DISCARDED));
-        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateOrderByCreatedDateDesc(chatDate)
+        ChatAggregation aggregation = chatAggregationRepository.findByChatDateWithPessimisticLock(chatDate)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));
 
         if (targetStatus.equals(ChatStatus.MULTI_DD)) {
@@ -157,7 +157,7 @@ public class ChatService {
         uncategorizedChats.forEach(chatProcessor::assignBondByContent);
 
         // 집계 업데이트를 위한 조회
-        ChatAggregation aggregation = chatAggregationRepository.findTopByChatDateOrderByCreatedDateDesc(chatDate)
+        ChatAggregation aggregation = chatAggregationRepository.findByChatDateWithPessimisticLock(chatDate)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));
 
         List<Chat> successChats = uncategorizedChats.stream()

@@ -30,11 +30,6 @@ public class AggregationController {
         return ChatAggregationResponse.from(result);
     }
 
-    @GetMapping("/api/v1/aggregation/chat/history")
-    public List<ChatAggregationResult> getChatAggregationHistory(@RequestParam("date") String date) {
-        return aggregationService.getChatAggregationHistory(date);
-    }
-
     @PostMapping("/api/v1/aggregation/transaction")
     public void aggregateDailyTransaction(@RequestParam("date") String date) {
         aggregationService.aggregateTransaction(date);

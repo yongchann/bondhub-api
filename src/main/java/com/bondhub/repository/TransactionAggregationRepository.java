@@ -9,5 +9,5 @@ public interface TransactionAggregationRepository extends JpaRepository<Transact
 
     Optional<TransactionAggregation> findByTransactionDate(String transactionDate);
 
-    Optional<TransactionAggregation> findTopByTransactionDateOrderByCreatedDateDesc(String transactionDate);
+    Optional<TransactionAggregation> findTopByTransactionDateOrderByCreatedDateTimeDesc(String transactionDate);
 }
