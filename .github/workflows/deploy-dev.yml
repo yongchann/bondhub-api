@@ -1,4 +1,4 @@
-name: OTC Bridge CI/CD for DEV server
+name: BondHub CI/CD for develop server
 
 on:
   push:
@@ -48,7 +48,7 @@ jobs:
           echo "$EC2_SSH_KEY" > ec2_key.pem
           chmod 400 ec2_key.pem
           scp -o StrictHostKeyChecking=no -i ec2_key.pem \
-            build/libs/otc-bridge-api-0.0.1-SNAPSHOT.jar \
+            build/libs/bondhub-api-0.0.1-SNAPSHOT.jar \
             .github/deploy/dev.sh \
             env_file.sh \
             $EC2_USER@$EC2_HOST:/home/ec2-user/

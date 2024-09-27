@@ -29,4 +29,4 @@ fi
 
 # Start new application
 log_with_timestamp "Starting new application..."
-nohup java -jar /home/ec2-user/otc-bridge-api-0.0.1-SNAPSHOT.jar > /home/ec2-user/app.log 2>&1 &
+nohup java -jar /home/ec2-user/bondhub-api-0.0.1-SNAPSHOT.jar > /home/ec2-user/app.log 2>&1 &

@@ -43,7 +43,7 @@ logging:
   level:
     root: DEBUG
 
-bucket-name: otc-bridge-local
+bucket-name: bondhub-local
 
 ---
 
@@ -72,4 +72,4 @@ logging:
   level:
     root: INFO
 
-bucket-name: otc-bridge-dev
+bucket-name: bondhub-develop

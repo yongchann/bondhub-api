@@ -1,4 +1,4 @@
-package com.otcbridge.domain.aggregation;
+package com.bondhub.domain.aggregation;
 
 import lombok.*;
 
