@@ -49,7 +49,7 @@ public class UserService {
         }
 
         LocalDateTime lastLoginDateTime = user.get().getLastLoginDateTime();
-        return LocalDateTime.now().minusHours(6).isBefore(lastLoginDateTime);
+        return LocalDateTime.now().minusHours(12).isBefore(lastLoginDateTime);
     }
 
     @Transactional
