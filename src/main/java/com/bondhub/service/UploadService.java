@@ -1,9 +1,8 @@
 package com.bondhub.service;
 
 import com.bondhub.service.exception.IllegalFileNameException;
-import com.bondhub.support.FileInfo;
-import com.bondhub.support.FileValidator;
-import com.bondhub.support.S3FileRepository;
+import com.bondhub.domain.common.FileInfo;
+import com.bondhub.repository.S3FileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

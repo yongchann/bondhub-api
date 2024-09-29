@@ -1,4 +1,4 @@
-package com.bondhub.support;
+package com.bondhub.domain.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

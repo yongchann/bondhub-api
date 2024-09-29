@@ -13,8 +13,8 @@ import com.bondhub.repository.ChatRepository;
 import com.bondhub.repository.TransactionRepository;
 import com.bondhub.repository.TransactionAggregationRepository;
 import com.bondhub.service.exception.NotFoundAggregationException;
-import com.bondhub.support.FileInfo;
-import com.bondhub.support.S3FileRepository;
+import com.bondhub.domain.common.FileInfo;
+import com.bondhub.repository.S3FileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 
 import static com.bondhub.service.UploadService.CHAT_FILE_KEY_PREFIX;
 import static com.bondhub.service.UploadService.CHAT_FILE_SAVE_NAME;
-import static com.bondhub.support.S3FileRepository.buildPath;
+import static com.bondhub.repository.S3FileRepository.buildPath;
 
 @Slf4j
 @RequiredArgsConstructor

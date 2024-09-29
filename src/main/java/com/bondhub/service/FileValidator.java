@@ -1,5 +1,6 @@
-package com.bondhub.support;
+package com.bondhub.service;
 
+import com.bondhub.domain.common.FileInfo;
 import com.bondhub.service.exception.IllegalFileNameException;
 import org.springframework.stereotype.Component;
 

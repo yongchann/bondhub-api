@@ -6,8 +6,8 @@ import com.bondhub.domain.transaction.TransactionStatus;
 import com.bondhub.repository.TransactionRepository;
 import com.bondhub.service.dto.BondGradeCollisionDto;
 import com.bondhub.service.dto.TransactionDto;
-import com.bondhub.support.FileInfo;
-import com.bondhub.support.S3FileRepository;
+import com.bondhub.domain.common.FileInfo;
+import com.bondhub.repository.S3FileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.bondhub.service.UploadService.*;
-import static com.bondhub.support.S3FileRepository.buildPath;
+import static com.bondhub.repository.S3FileRepository.buildPath;
 
 @RequiredArgsConstructor
 @Service
