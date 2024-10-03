@@ -3,7 +3,7 @@ package com.bondhub.service;
 import com.bondhub.domain.bond.Bond;
 import com.bondhub.domain.transaction.Transaction;
 import com.bondhub.domain.transaction.TransactionStatus;
-import com.bondhub.repository.TransactionRepository;
+import com.bondhub.domain.transaction.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;

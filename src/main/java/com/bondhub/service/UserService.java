@@ -1,7 +1,7 @@
 package com.bondhub.service;
 
-import com.bondhub.domain.User;
-import com.bondhub.repository.UserRepository;
+import com.bondhub.domain.user.User;
+import com.bondhub.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;

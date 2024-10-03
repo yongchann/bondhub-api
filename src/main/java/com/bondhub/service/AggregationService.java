@@ -1,20 +1,20 @@
 package com.bondhub.service;
 
-import com.bondhub.domain.aggregation.ChatAggregation;
-import com.bondhub.domain.aggregation.ChatAggregationResult;
-import com.bondhub.domain.aggregation.TransactionAggregation;
-import com.bondhub.domain.aggregation.TransactionAggregationResult;
+import com.bondhub.domain.chat.ChatAggregation;
+import com.bondhub.service.dto.ChatAggregationResult;
+import com.bondhub.domain.transaction.TransactionAggregation;
+import com.bondhub.service.dto.TransactionAggregationResult;
 import com.bondhub.domain.chat.Chat;
 import com.bondhub.domain.chat.ChatStatus;
 import com.bondhub.domain.transaction.Transaction;
 import com.bondhub.domain.transaction.TransactionStatus;
-import com.bondhub.repository.ChatAggregationRepository;
-import com.bondhub.repository.ChatRepository;
-import com.bondhub.repository.TransactionRepository;
-import com.bondhub.repository.TransactionAggregationRepository;
+import com.bondhub.domain.chat.ChatAggregationRepository;
+import com.bondhub.domain.chat.ChatRepository;
+import com.bondhub.domain.transaction.TransactionRepository;
+import com.bondhub.domain.transaction.TransactionAggregationRepository;
 import com.bondhub.service.exception.NotFoundAggregationException;
 import com.bondhub.domain.common.FileInfo;
-import com.bondhub.repository.S3FileRepository;
+import com.bondhub.support.S3FileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 
 import static com.bondhub.service.UploadService.CHAT_FILE_KEY_PREFIX;
 import static com.bondhub.service.UploadService.CHAT_FILE_SAVE_NAME;
-import static com.bondhub.repository.S3FileRepository.buildPath;
+import static com.bondhub.support.S3FileRepository.buildPath;
 
 @Slf4j
 @RequiredArgsConstructor

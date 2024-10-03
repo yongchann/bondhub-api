@@ -1,5 +1,6 @@
-package com.bondhub.domain.aggregation;
+package com.bondhub.service.dto;
 
+import com.bondhub.domain.transaction.TransactionAggregation;
 import lombok.*;
 
 import java.time.LocalDateTime;

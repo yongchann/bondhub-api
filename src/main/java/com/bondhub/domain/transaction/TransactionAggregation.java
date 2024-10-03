@@ -1,4 +1,4 @@
-package com.bondhub.domain.aggregation;
+package com.bondhub.domain.transaction;
 
 import com.bondhub.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;

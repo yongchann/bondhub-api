@@ -1,6 +1,5 @@
-package com.bondhub.repository;
+package com.bondhub.domain.chat;
 
-import com.bondhub.domain.chat.MultiBondChatHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

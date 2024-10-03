@@ -1,15 +1,15 @@
 package com.bondhub.service;
 
-import com.bondhub.domain.aggregation.ChatAggregation;
+import com.bondhub.domain.chat.ChatAggregation;
 import com.bondhub.domain.bond.Bond;
 import com.bondhub.domain.chat.Chat;
 import com.bondhub.domain.chat.ChatStatus;
 import com.bondhub.domain.chat.ExclusionKeyword;
 import com.bondhub.domain.chat.MultiBondChatHistory;
-import com.bondhub.repository.ChatAggregationRepository;
-import com.bondhub.repository.ChatRepository;
-import com.bondhub.repository.ExclusionKeywordRepository;
-import com.bondhub.repository.MultiBondChatHistoryRepository;
+import com.bondhub.domain.chat.ChatAggregationRepository;
+import com.bondhub.domain.chat.ChatRepository;
+import com.bondhub.domain.chat.ExclusionKeywordRepository;
+import com.bondhub.domain.chat.MultiBondChatHistoryRepository;
 import com.bondhub.service.dto.*;
 import com.bondhub.service.event.ExclusionKeywordEvent;
 import com.bondhub.service.exception.NotFoundAggregationException;

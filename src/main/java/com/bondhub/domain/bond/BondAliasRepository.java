@@ -1,6 +1,5 @@
-package com.bondhub.repository;
+package com.bondhub.domain.bond;
 
-import com.bondhub.domain.bond.BondAlias;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

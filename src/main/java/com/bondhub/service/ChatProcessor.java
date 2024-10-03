@@ -4,7 +4,7 @@ import com.bondhub.domain.bond.Bond;
 import com.bondhub.domain.chat.Chat;
 import com.bondhub.domain.chat.ChatStatus;
 import com.bondhub.domain.chat.MultiBondChatHistory;
-import com.bondhub.repository.MultiBondChatHistoryRepository;
+import com.bondhub.domain.chat.MultiBondChatHistoryRepository;
 import com.bondhub.service.dto.ChatDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

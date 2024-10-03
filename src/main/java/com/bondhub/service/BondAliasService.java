@@ -2,8 +2,8 @@ package com.bondhub.service;
 
 import com.bondhub.domain.bond.BondAlias;
 import com.bondhub.domain.bond.BondIssuer;
-import com.bondhub.repository.BondAliasRepository;
-import com.bondhub.repository.BondIssuerRepository;
+import com.bondhub.domain.bond.BondAliasRepository;
+import com.bondhub.domain.bond.BondIssuerRepository;
 import com.bondhub.service.dto.BondAliasDto;
 import com.bondhub.service.event.BondAliasEvent;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,5 @@
-package com.bondhub.domain.aggregation;
+package com.bondhub.domain.chat;
 
-import com.bondhub.domain.chat.ChatStatus;
 import com.bondhub.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;

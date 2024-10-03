@@ -1,8 +1,6 @@
-package com.bondhub.repository;
+package com.bondhub.domain.chat;
 
 import com.bondhub.domain.bond.BondType;
-import com.bondhub.domain.chat.Chat;
-import com.bondhub.domain.chat.ChatStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

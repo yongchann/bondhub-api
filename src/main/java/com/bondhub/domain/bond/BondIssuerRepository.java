@@ -1,6 +1,5 @@
-package com.bondhub.repository;
+package com.bondhub.domain.bond;
 
-import com.bondhub.domain.bond.BondIssuer;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

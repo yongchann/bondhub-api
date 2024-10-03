@@ -2,16 +2,14 @@ package com.bondhub.controller.v1;
 
 import com.bondhub.controller.v1.response.ChatAggregationResponse;
 import com.bondhub.controller.v1.response.TransactionAggregationResponse;
-import com.bondhub.domain.aggregation.ChatAggregationResult;
-import com.bondhub.domain.aggregation.TransactionAggregationResult;
+import com.bondhub.service.dto.ChatAggregationResult;
+import com.bondhub.service.dto.TransactionAggregationResult;
 import com.bondhub.service.AggregationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @RestController

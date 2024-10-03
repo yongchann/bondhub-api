@@ -1,6 +1,6 @@
 package com.bondhub.controller.v1.response;
 
-import com.bondhub.domain.aggregation.TransactionAggregationResult;
+import com.bondhub.service.dto.TransactionAggregationResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

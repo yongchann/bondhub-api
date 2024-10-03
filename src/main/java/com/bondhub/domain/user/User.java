@@ -1,4 +1,4 @@
-package com.bondhub.domain;
+package com.bondhub.domain.user;
 
 import jakarta.persistence.*;
 import lombok.*;

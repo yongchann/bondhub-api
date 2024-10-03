@@ -1,8 +1,6 @@
-package com.bondhub.repository;
+package com.bondhub.domain.transaction;
 
 import com.bondhub.domain.bond.BondType;
-import com.bondhub.domain.transaction.Transaction;
-import com.bondhub.domain.transaction.TransactionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

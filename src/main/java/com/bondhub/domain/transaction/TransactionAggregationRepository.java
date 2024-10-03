@@ -1,6 +1,5 @@
-package com.bondhub.repository;
+package com.bondhub.domain.transaction;
 
-import com.bondhub.domain.aggregation.TransactionAggregation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

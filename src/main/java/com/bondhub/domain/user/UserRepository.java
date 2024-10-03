@@ -1,6 +1,5 @@
-package com.bondhub.repository;
+package com.bondhub.domain.user;
 
-import com.bondhub.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

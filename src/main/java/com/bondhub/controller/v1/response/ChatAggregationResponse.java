@@ -1,6 +1,6 @@
 package com.bondhub.controller.v1.response;
 
-import com.bondhub.domain.aggregation.ChatAggregationResult;
+import com.bondhub.service.dto.ChatAggregationResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
