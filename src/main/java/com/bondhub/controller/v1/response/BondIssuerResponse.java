@@ -12,9 +12,13 @@ public class BondIssuerResponse {
 
     private List<BondIssuerDto> publicIssuers;
 
-    private List<BondIssuerDto> bankIssuers;
+    private List<BondIssuerDto> commercialBankIssuers;
 
-    private List<BondIssuerDto> specializedCreditIssuers;
+    private List<BondIssuerDto> specialBankIssuers;
+
+    private List<BondIssuerDto> cardIssuers;
+
+    private List<BondIssuerDto> capitalIssuers;
 
     private List<BondIssuerDto> companyIssuers;
 

@@ -33,8 +33,10 @@ public class BondIssuerController {
 
         return new BondIssuerResponse(
                 bondIssuerMap.getOrDefault(BondType.PUBLIC, List.of()),
-                bondIssuerMap.getOrDefault(BondType.BANK, List.of()),
-                bondIssuerMap.getOrDefault(BondType.SPECIALIZED_CREDIT, List.of()),
+                bondIssuerMap.getOrDefault(BondType.COMMERCIAL_BANK, List.of()),
+                bondIssuerMap.getOrDefault(BondType.SPECIAL_BANK, List.of()),
+                bondIssuerMap.getOrDefault(BondType.CARD, List.of()),
+                bondIssuerMap.getOrDefault(BondType.CAPITAL, List.of()),
                 bondIssuerMap.getOrDefault(BondType.COMPANY, List.of())
         );
     }

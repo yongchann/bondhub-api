@@ -62,7 +62,7 @@ public class AskService {
         Map<BondType, List<Transaction>> txGroupByBondType = allTransactions.stream()
                 .collect(Collectors.groupingBy(transaction -> transaction.getBond().getBondIssuer().getType()));
 
-        List<BondType> bondTypes = Arrays.asList(BondType.PUBLIC, BondType.BANK, BondType.SPECIALIZED_CREDIT, BondType.COMPANY);
+        List<BondType> bondTypes = Arrays.asList(BondType.PUBLIC, BondType.COMMERCIAL_BANK, BondType.SPECIAL_BANK, BondType.CARD, BondType.CAPITAL, BondType.COMPANY);
         for (BondType bondType : bondTypes) {
             List<Chat> chats = chatGroupByBondType.getOrDefault(bondType, List.of());
             List<Transaction> transactions = txGroupByBondType.getOrDefault(bondType, List.of());
