@@ -22,6 +22,6 @@ public class LoginController {
     @PostMapping("/api/v1/login")
     public LoginResponse login(@RequestBody LoginRequest request) {
         String token = userService.login(request.getUsername(), request.getPassword());
-        return new LoginResponse(token);
+        return new LoginResponse(request.getUsername(), token);
     }
 }
