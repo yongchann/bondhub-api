@@ -35,6 +35,18 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
     @Query("SELECT c FROM Chat c " +
             "JOIN FETCH c.bond b " +
             "JOIN FETCH b.bondIssuer bi " +
+            "WHERE c.chatDate = :date " +
+            "AND c.status = 'OK' " +
+            "AND bi.type = :bondType " +
+            "ORDER BY b.dueDate ASC, c.sendDateTime DESC")
+    List<Chat> findClassifiedChatWithBond(
+            @Param("date") String date,
+            @Param("bondType") BondType bondType
+    );
+
+    @Query("SELECT c FROM Chat c " +
+            "JOIN FETCH c.bond b " +
+            "JOIN FETCH b.bondIssuer bi " +
             "WHERE c.chatDate = :chatDate " +
             "AND c.status = 'OK'")
     List<Chat> findFetchBondAndBondIssuerByChatDate(String chatDate);

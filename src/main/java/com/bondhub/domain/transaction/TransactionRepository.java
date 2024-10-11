@@ -35,6 +35,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             "JOIN FETCH t.bond b " +
             "JOIN FETCH b.bondIssuer bi " +
             "WHERE t.transactionDate = :transactionDate " +
+            "AND t.status = 'OK' " +
+            "AND bi.type = :bondType")
+    List<Transaction> findClassifiedTxWithBond(
+            @Param("transactionDate") String txDate,
+            @Param("bondType") BondType bondType);
+
+    @Query("SELECT t FROM Transaction t " +
+            "JOIN FETCH t.bond b " +
+            "JOIN FETCH b.bondIssuer bi " +
+            "WHERE t.transactionDate = :transactionDate " +
             "AND t.status = 'OK'")
     List<Transaction> findFetchBondAndBondIssuerByTransactionDate(String transactionDate);
 
