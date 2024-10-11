@@ -50,12 +50,12 @@ public class BondInitializer {
 
     private void dbSetupFromJsonFile() {
         Map<String, BondType> fileNameBondTypeMap = Map.of(
-                "bond_public.json", BondType.PUBLIC,
-                "bond_commercial_bank.json", BondType.COMMERCIAL_BANK,
-                "bond_special_bank.json", BondType.SPECIAL_BANK,
-                "bond_card.json", BondType.CARD,
-                "bond_capital.json", BondType.CAPITAL,
-                "bond_company.json", BondType.COMPANY
+                "PUBLIC.json", BondType.PUBLIC,
+                "COMMERCIAL_BANK.json", BondType.COMMERCIAL_BANK,
+                "SPECIAL_BANK.json", BondType.SPECIAL_BANK,
+                "CARD.json", BondType.CARD,
+                "CAPITAL.json", BondType.CAPITAL,
+                "COMPANY.json", BondType.COMPANY
         );
 
         fileNameBondTypeMap.forEach((fileName, bondType) -> {
