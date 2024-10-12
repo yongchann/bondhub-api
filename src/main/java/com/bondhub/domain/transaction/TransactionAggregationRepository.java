@@ -6,7 +6,5 @@ import java.util.Optional;
 
 public interface TransactionAggregationRepository extends JpaRepository<TransactionAggregation, Long> {
 
-    Optional<TransactionAggregation> findByTransactionDate(String transactionDate);
-
     Optional<TransactionAggregation> findTopByTransactionDateOrderByCreatedDateTimeDesc(String transactionDate);
 }

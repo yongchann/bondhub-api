@@ -37,27 +37,6 @@ public class TransactionService {
                 .toList();
     }
 
-    @Transactional
-    public int updateNotUsed(String date, List<Long> targetIds) {
-        List<Transaction> transactions = transactionRepository.findByTransactionDateAndStatus(date, TransactionStatus.UNCATEGORIZED);
-        return transactions.stream()
-                .filter(tx -> targetIds.contains(tx.getId()))
-                .peek(Transaction::modifyStatusNotUsed)
-                .toList().size();
-    }
-
-    public List<BondGradeCollisionDto> findGradeCollisionTransactions(String date) {
-        List<Transaction> transactions = transactionRepository.findByTransactionDateAndStatus(date, TransactionStatus.AMBIGUOUS_GRADE);
-
-        return transactions.stream()
-                .map(tx -> {
-                    BondIssuer bondIssuer = tx.getBond().getBondIssuer();
-                    return new BondGradeCollisionDto(
-                            bondIssuer.getId(), bondIssuer.getName(), bondIssuer.getGrade(), // 기존 등록된 신용등급
-                            tx.getBondName(), tx.getCreditRating()); // 거래 내역에서 추출된 신용등급
-                }).collect(Collectors.toSet()).stream().toList();
-    }
-
     public InputStream findTransactionFileContent(String date) {
         FileInfo file = fileRepository.get(buildPath(TRANSACTION_FILE_KEY_PREFIX, date), TRANSACTION_FILE_SAVE_NAME);
         return file.getInputStream();
