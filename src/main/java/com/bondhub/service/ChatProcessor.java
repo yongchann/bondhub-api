@@ -158,10 +158,6 @@ public class ChatProcessor {
         return SELLING_KEYWORDS.stream().anyMatch(content::contains);
     }
 
-    private boolean isAllowedMessage(String content) {
-        return bondClassifier.getExclusionKeywords().stream().noneMatch(content::contains);
-    }
-
     public String preprocess(String rawText) {
         int index = rawText.indexOf("\r\n");
         rawText = rawText.substring(index + "\r\n".length());

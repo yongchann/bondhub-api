@@ -1,20 +1,13 @@
 package com.bondhub.service;
 
-import com.bondhub.domain.chat.ChatAggregation;
 import com.bondhub.domain.bond.Bond;
-import com.bondhub.domain.chat.Chat;
-import com.bondhub.domain.chat.ChatStatus;
-import com.bondhub.domain.chat.ExclusionKeyword;
-import com.bondhub.domain.chat.MultiBondChatHistory;
-import com.bondhub.domain.chat.ChatAggregationRepository;
-import com.bondhub.domain.chat.ChatRepository;
-import com.bondhub.domain.chat.ExclusionKeywordRepository;
-import com.bondhub.domain.chat.MultiBondChatHistoryRepository;
-import com.bondhub.service.dto.*;
-import com.bondhub.service.event.ExclusionKeywordEvent;
+import com.bondhub.domain.chat.*;
+import com.bondhub.service.dto.BondChatDto;
+import com.bondhub.service.dto.ChatDto;
+import com.bondhub.service.dto.MultiBondChatDto;
+import com.bondhub.service.dto.UncategorizedChatDto;
 import com.bondhub.service.exception.NotFoundAggregationException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +23,7 @@ public class ChatService {
 
     private final ChatRepository  chatRepository;
     private final ChatAggregationRepository chatAggregationRepository;
-    private final ExclusionKeywordRepository exclusionKeywordRepository;
     private final MultiBondChatHistoryRepository multiBondChatHistoryRepository;
-
-    private final ApplicationEventPublisher publisher;
 
     public List<UncategorizedChatDto> findUncategorizedChats(String chatDate) {
         List<Chat> chats = chatRepository.findByChatDateAndStatus(chatDate, ChatStatus.UNCATEGORIZED);
@@ -119,34 +109,35 @@ public class ChatService {
             throw new IllegalArgumentException("can not discard this type of chat: " + targetChats);
         }
     }
-    public List<ExclusionKeywordDto> getExclusionKeywords() {
-        List<ExclusionKeyword> keywords = exclusionKeywordRepository.findAll();
-        return  keywords.stream()
-                .map(keyword -> new ExclusionKeywordDto(keyword.getId(), keyword.getName()))
-                .toList();
-    }
 
-    @Transactional
-    public void deleteExclusionKeywords(Long exclusionKeywordId) {
-        ExclusionKeyword exclusionKeyword = exclusionKeywordRepository.findById(exclusionKeywordId)
-                .orElseThrow(() -> new IllegalArgumentException("not found exclusion keyword, id: " + exclusionKeywordId));
-
-        exclusionKeywordRepository.delete(exclusionKeyword);
-
-        publisher.publishEvent(new ExclusionKeywordEvent(this, ExclusionKeywordEvent.Type.DELETED, "exclusion keyword deleted", exclusionKeyword.getName()));
-    }
-
-    public String createExclusionKeyword(String name) {
-        Optional<ExclusionKeyword> keyword = exclusionKeywordRepository.findByName(name);
-        if (keyword.isPresent()) {
-            throw new IllegalArgumentException("already exist exclusion keyword name : " + name);
+    private List<BondChatDto> groupByBond(List<Chat> chats) {
+        Map<Bond, BondChatDto> bondMap = new HashMap<>();
+        for (Chat chat : chats) {
+            bondMap.computeIfAbsent(chat.getBond(), k -> BondChatDto.from(chat.getBond()))
+                    .getChats().add(ChatDto.builder()
+                            .chatId(chat.getId())
+                            .sendTime(chat.getSendTime())
+                            .content(chat.getContent())
+                            .build());
         }
 
-        exclusionKeywordRepository.save(new ExclusionKeyword(name));
+        return bondMap.values().stream()
+                .sorted(Comparator.comparing(BondChatDto::getDueDate))
+                .toList();
+    }
+    @Transactional
+    public void append(String chatDate, List<ChatDto> recentChats) {
+        List<Chat> chats = chatProcessor.convertToEntity(chatDate, recentChats);
 
-        publisher.publishEvent(new ExclusionKeywordEvent(this, ExclusionKeywordEvent.Type.CREATED, "exclusion keyword created" ,name));
+        // 채팅 가공 상태에 따른 집계 결과를 생성
+        Map<ChatStatus, Long> statusCounts = chats.stream()
+                .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
 
-        return name;
+        ChatAggregation chatAggregation = chatAggregationRepository.findByChatDateWithPessimisticLock(chatDate)
+                .orElseGet(() -> chatAggregationRepository.save(ChatAggregation.create(chatDate)));
+
+        chatAggregation.update(statusCounts);
+        chatRepository.saveAll(chats);
     }
 
     @Transactional
@@ -167,35 +158,5 @@ public class ChatService {
         aggregation.updateRetrialOfUncategorizedChat(successChats.size());
 
         return groupByBond(successChats);
-    }
-    private List<BondChatDto> groupByBond(List<Chat> chats) {
-        Map<Bond, BondChatDto> bondMap = new HashMap<>();
-        for (Chat chat : chats) {
-            bondMap.computeIfAbsent(chat.getBond(), k -> BondChatDto.from(chat.getBond()))
-                    .getChats().add(ChatDto.builder()
-                            .chatId(chat.getId())
-                            .sendTime(chat.getSendTime())
-                            .content(chat.getContent())
-                            .build());
-        }
-
-        return bondMap.values().stream()
-                .sorted(Comparator.comparing(BondChatDto::getDueDate))
-                .toList();
-    }
-
-    @Transactional
-    public void append(String chatDate, List<ChatDto> recentChats) {
-        List<Chat> chats = chatProcessor.convertToEntity(chatDate, recentChats);
-
-        // 채팅 가공 상태에 따른 집계 결과를 생성
-        Map<ChatStatus, Long> statusCounts = chats.stream()
-                .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
-
-        ChatAggregation chatAggregation = chatAggregationRepository.findByChatDateWithPessimisticLock(chatDate)
-                .orElseGet(() -> chatAggregationRepository.save(ChatAggregation.create(chatDate)));
-
-        chatAggregation.update(statusCounts);
-        chatRepository.saveAll(chats);
     }
 }

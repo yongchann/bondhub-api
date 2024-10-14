@@ -1,15 +1,8 @@
 package com.bondhub.service;
 
-import com.bondhub.domain.bond.BondAlias;
-import com.bondhub.domain.bond.BondIssuer;
-import com.bondhub.domain.bond.BondType;
-import com.bondhub.domain.chat.ExclusionKeyword;
-import com.bondhub.domain.bond.BondAliasRepository;
-import com.bondhub.domain.bond.BondIssuerRepository;
-import com.bondhub.domain.chat.ExclusionKeywordRepository;
+import com.bondhub.domain.bond.*;
 import com.bondhub.service.dto.BondIssuerJson;
 import com.bondhub.service.event.BondAliasEvent;
-import com.bondhub.service.event.ExclusionKeywordEvent;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +26,6 @@ public class BondInitializer {
     private final ObjectMapper objectMapper;
     private final BondIssuerRepository bondIssuerRepository;
     private final BondAliasRepository bondAliasRepository;
-    private final ExclusionKeywordRepository exclusionKeywordRepository;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -45,7 +37,6 @@ public class BondInitializer {
         }
 
         eventPublisher.publishEvent(new BondAliasEvent(this, BondAliasEvent.Type.INITIALIZED, "BondInitializer succeeded to update bond info", ""));
-        eventPublisher.publishEvent(new ExclusionKeywordEvent(this, ExclusionKeywordEvent.Type.INITIALIZED,"BondInitializer succeeded to update exclusion keywords", ""));
     }
 
     private void dbSetupFromJsonFile() {
@@ -82,15 +73,6 @@ public class BondInitializer {
                 throw new RuntimeException(e);
             }
         });
-
-        try {
-            List<String> keywordsJson = loadExclusionKeywordFromJson("exclusion_keyword.json");
-            List<ExclusionKeyword> exclusionKeywords = keywordsJson.stream().map(ExclusionKeyword::new).toList();
-            exclusionKeywordRepository.saveAll(exclusionKeywords);
-        } catch (IOException e) {
-            log.error("failed to register exclusion keywords");
-            throw new RuntimeException(e);
-        }
     }
 
     private boolean isRequiredDbSetup() {
@@ -102,8 +84,4 @@ public class BondInitializer {
         return objectMapper.readValue(resource.getInputStream(), new TypeReference<>() {});
     }
 
-    private List<String> loadExclusionKeywordFromJson(String filePath) throws IOException {
-        ClassPathResource resource = new ClassPathResource(filePath);
-        return objectMapper.readValue(resource.getInputStream(), new TypeReference<>() {});
-    }
 }

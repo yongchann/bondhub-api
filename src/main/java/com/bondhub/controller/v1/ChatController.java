@@ -1,9 +1,14 @@
 package com.bondhub.controller.v1;
 
-import com.bondhub.controller.v1.request.*;
-import com.bondhub.controller.v1.response.ExclusionKeywordResponse;
+import com.bondhub.controller.v1.request.AppendRecentChatRequest;
+import com.bondhub.controller.v1.request.DiscardChatsRequest;
+import com.bondhub.controller.v1.request.RetryForUncategorizedChatRequest;
+import com.bondhub.controller.v1.request.SplitMultiBondChatRequest;
 import com.bondhub.service.ChatService;
-import com.bondhub.service.dto.*;
+import com.bondhub.service.dto.BondChatDto;
+import com.bondhub.service.dto.ChatDto;
+import com.bondhub.service.dto.MultiBondChatDto;
+import com.bondhub.service.dto.UncategorizedChatDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,19 +60,4 @@ public class ChatController {
         chatService.discardChats(request.getChatDate(), request.getStatus(), request.getChatIds());
     }
 
-    @GetMapping("/api/v1/chat/exclusion-keyword")
-    public ExclusionKeywordResponse getExclusionKeywords() {
-        List<ExclusionKeywordDto> exclusionKeywords = chatService.getExclusionKeywords();
-        return new ExclusionKeywordResponse(exclusionKeywords);
-    }
-
-    @DeleteMapping("/api/v1/chat/exclusion-keyword/{id}")
-    public void deleteExclusionKeywords(@PathVariable(name = "id") Long exclusionKeywordId) {
-        chatService.deleteExclusionKeywords(exclusionKeywordId);
-    }
-
-    @PostMapping("/api/v1/chat/exclusion-keyword")
-    public String createExclusionKeyword(@RequestBody CreateExclusionKeywordRequest request) {
-        return chatService.createExclusionKeyword(request.getName());
-    }
 }

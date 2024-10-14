@@ -21,7 +21,6 @@ public class AskManager {
     private final BondClassifier bondClassifier;
 
     public List<Ask> convertToAsk(List<Chat> chats, List<Transaction> transactions) {
-        List<String> exclusionKeywords = bondClassifier.getExclusionKeywords();
         Map<Bond, Ask> bondMap = new HashMap<>();
 
         for (Chat chat : chats) {
@@ -33,7 +32,6 @@ public class AskManager {
                             .sendTime(chat.getSendTime())
                             .content(chat.getContent())
                             .senderAddress(chat.getSenderAddress())
-                            .containExclusionKeyword(exclusionKeywords.stream().anyMatch(keyword -> chat.getContent().contains(keyword)))
                             .build());
         }
 

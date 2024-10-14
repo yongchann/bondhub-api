@@ -24,15 +24,6 @@ public class ChatDto {
 
     private String senderAddress;
 
-    @Setter
-    private boolean containExclusionKeyword;
-
-    public ChatDto(String sendTime, String content, boolean containExclusionKeyword) {
-        this.sendTime = sendTime;
-        this.content = content;
-        this.containExclusionKeyword = containExclusionKeyword;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

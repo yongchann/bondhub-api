@@ -3,12 +3,9 @@ package com.bondhub.service;
 import com.bondhub.domain.bond.Bond;
 import com.bondhub.domain.bond.BondAlias;
 import com.bondhub.domain.bond.BondIssuer;
-import com.bondhub.domain.chat.ExclusionKeyword;
 import com.bondhub.domain.bond.BondAliasRepository;
 import com.bondhub.domain.bond.BondRepository;
-import com.bondhub.domain.chat.ExclusionKeywordRepository;
 import com.bondhub.service.event.BondAliasEvent;
-import com.bondhub.service.event.ExclusionKeywordEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -20,14 +17,11 @@ import java.util.*;
 public class BondClassifier {
 
     private SortedMap<String, BondIssuer> aliasToIssuerMap;
-    private List<String> exclusionKeywords = new ArrayList<>();
 
-    private final ExclusionKeywordRepository exclusionKeywordRepository;
     private final BondAliasRepository bondAliasRepository;
     private final BondRepository bondRepository;
 
-    protected BondClassifier(ExclusionKeywordRepository exclusionKeywordRepository, BondAliasRepository bondAliasRepository, BondRepository bondRepository) {
-        this.exclusionKeywordRepository = exclusionKeywordRepository;
+    protected BondClassifier(BondAliasRepository bondAliasRepository, BondRepository bondRepository) {
         this.bondAliasRepository = bondAliasRepository;
         this.bondRepository = bondRepository;
         this.aliasToIssuerMap = new TreeMap<>( // key length desc
@@ -65,33 +59,6 @@ public class BondClassifier {
         }
     }
 
-    @EventListener(ExclusionKeywordEvent.class)
-    public void handleExclusionKeyword(ExclusionKeywordEvent event) {
-        log.info("ExclusionKeyword {}, {}",event.getType().name(), event.getKeyword());
-
-        switch (event.getType()) {
-            case INITIALIZED:
-                exclusionKeywords.clear();
-                List<ExclusionKeyword> keywords = this.exclusionKeywordRepository.findAll();
-                for (ExclusionKeyword exclusionKeyword : keywords) {
-                    exclusionKeywords.add(exclusionKeyword.getName());
-                }
-                break;
-
-            case CREATED:
-                ExclusionKeyword createdKeyword = exclusionKeywordRepository.findByName(event.getKeyword()).orElseThrow(
-                        () -> new IllegalArgumentException("failed to find new keyword: " + event.getKeyword()));
-                exclusionKeywords.add(createdKeyword.getName());
-                break;
-
-            case DELETED:
-                exclusionKeywords.remove(event.getKeyword());
-                break;
-
-        }
-
-    }
-
     public Bond extractBond(String content, String dueDate) {
         for (Map.Entry<String, BondIssuer> entry : aliasToIssuerMap.entrySet()) {
             String alias = entry.getKey();
@@ -102,10 +69,6 @@ public class BondClassifier {
             }
         }
         return null;
-    }
-
-    public List<String> getExclusionKeywords() {
-        return exclusionKeywords;
     }
 
 }
