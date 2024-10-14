@@ -30,7 +30,7 @@ public class AskManager {
                     .add(ChatDto.builder()
                             .chatId(chat.getId())
                             .senderName(chat.getSenderName())
-                            .sendTime(chat.getSendDateTime())
+                            .sendTime(chat.getSendTime())
                             .content(chat.getContent())
                             .senderAddress(chat.getSenderAddress())
                             .containExclusionKeyword(exclusionKeywords.stream().anyMatch(keyword -> chat.getContent().contains(keyword)))

@@ -23,7 +23,7 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
             "AND bi.type = :bondType " +
             "AND c.dueDate BETWEEN :startDueDate AND :endDueDate " +
             "AND bi.grade IN :grades " +
-            "ORDER BY b.dueDate ASC, c.sendDateTime DESC")
+            "ORDER BY b.dueDate ASC, c.sendTime DESC")
     List<Chat> findValidChatsWithinDueDateRangeAndIssuerGrades(
             @Param("date") String date,
             @Param("bondType") BondType bondType,
@@ -38,7 +38,7 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
             "WHERE c.chatDate = :date " +
             "AND c.status = 'OK' " +
             "AND bi.type = :bondType " +
-            "ORDER BY b.dueDate ASC, c.sendDateTime DESC")
+            "ORDER BY b.dueDate ASC, c.sendTime DESC")
     List<Chat> findClassifiedChatWithBond(
             @Param("date") String date,
             @Param("bondType") BondType bondType

@@ -17,7 +17,7 @@ public class MultiDueDateChatDto {
 
     private String senderName;
 
-    private String sendDateTime;
+    private String sendTime;
 
     private String senderAddress;
 

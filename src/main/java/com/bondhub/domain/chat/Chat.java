@@ -23,7 +23,7 @@ public class Chat {
 
     private String senderName;
 
-    private String sendDateTime;
+    private String sendTime;
 
     @Enumerated(EnumType.STRING)
     private ChatStatus status;
@@ -61,7 +61,7 @@ public class Chat {
         return Chat.builder()
                 .chatDate(multiBondChat.getChatDate())
                 .senderName(multiBondChat.getSenderName())
-                .sendDateTime(multiBondChat.getSendDateTime())
+                .sendTime(multiBondChat.getSendTime())
                 .content(singleBondContent)
                 .senderAddress(multiBondChat.getSenderAddress())
                 .status(ChatStatus.SINGLE_DD)

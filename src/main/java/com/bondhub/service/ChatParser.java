@@ -29,7 +29,7 @@ public class ChatParser {
         List<Chat> chats = new ArrayList<>();
         while (matcher.find()) {
             String senderName = matcher.group(1).trim();
-            String sendDateTime = matcher.group(2);
+            String sendTime = matcher.group(2);
             String content = matcher.group(3);
             String senderAddress = extractSenderAddress(content).trim();
             if (senderAddress.isEmpty()) {
@@ -48,7 +48,7 @@ public class ChatParser {
             chats.add(Chat.builder()
                     .chatDate(chatDate)
                     .senderName(senderName)
-                    .sendDateTime(sendDateTime)
+                    .sendTime(sendTime)
                     .content(content)
                     .senderAddress(senderAddress)
                     .status(ChatStatus.CREATED)

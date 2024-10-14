@@ -74,7 +74,7 @@ public class ChatProcessor {
                 .map(chat -> Chat.builder()
                         .chatDate(date)
                         .senderName(chat.getSenderName())
-                        .sendDateTime(chat.getSendTime())
+                        .sendTime(chat.getSendTime())
                         .content(chat.getContent())
                         .senderAddress(chat.getSenderAddress())
                         .status(ChatStatus.CREATED)
@@ -120,7 +120,7 @@ public class ChatProcessor {
         for (Chat chat : allChats) {
             String content = chat.getContent();
             if (!uniqueChats.containsKey(content) ||
-                    isLaterTime(chat.getSendDateTime(), uniqueChats.get(content).getSendDateTime())) {
+                    isLaterTime(chat.getSendTime(), uniqueChats.get(content).getSendTime())) {
                 uniqueChats.put(content, chat);
             }
         }
