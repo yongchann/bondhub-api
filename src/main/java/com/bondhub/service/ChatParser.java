@@ -19,7 +19,7 @@ public class ChatParser {
 
     private static final String CHAT_MESSAGE_SEARCH_PATTERN = "([A-Za-z\\.가-힣0-9 女]+) \\((\\d{2}:\\d{2}:\\d{2})\\) :\\s*(.*?)(?=(?:[A-Z0-9a-z\\.가-힣 女]+\\s\\(\\d{2}:\\d{2}:\\d{2}\\)|$))";
     private static final String SENDER_ADDRESS_PATTERN = "\\s*\\([^)]*\\)\\s*$|\\s*\\[[^]]*\\]\\s*$|\\s*\\{[^}]*\\}\\s*$|\\s*<[^>]*>\\s*$|\\s*▨[^▨]*▨\\s*$|\\s*【[^】]*】\\s*$";
-    private static final String VALID_DUE_DATE_PATTERN = "\\d{2}[.]\\d{1,2}[.]\\d{1,2}";
+    private static final String VALID_DUE_DATE_PATTERN = "(\\d{2})([./ ])(0?[1-9]|1[0-2])\\2(0?[1-9]|[12][0-9]|3[01])";
     private final static String CHAT_SPLIT_DELIMITER = "§";
 
     public List<Chat> parseChatsFromRawText(String chatDate, String rawText) {
