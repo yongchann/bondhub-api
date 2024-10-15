@@ -127,7 +127,7 @@ public class ChatService {
             bondMap.computeIfAbsent(chat.getBond(), k -> BondChatDto.from(chat.getBond()))
                     .getChats().add(ChatDto.builder()
                             .chatId(chat.getId())
-                            .sendTime(chat.getSendTime())
+                            .chatDateTime(chat.getChatDateTime())
                             .content(chat.getContent())
                             .build());
         }

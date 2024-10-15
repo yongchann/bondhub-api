@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,9 +49,8 @@ public class ChatParser {
             }
 
             chats.add(Chat.builder()
-                    .chatDate(chatDate)
+                    .chatDateTime(LocalDateTime.of(LocalDate.parse(chatDate), LocalTime.parse(sendTime)))
                     .senderName(senderName)
-                    .sendTime(sendTime)
                     .content(content)
                     .senderAddress(senderAddress)
                     .status(ChatStatus.CREATED)

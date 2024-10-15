@@ -3,7 +3,6 @@ package com.bondhub.domain.ask;
 import com.bondhub.domain.bond.Bond;
 import com.bondhub.domain.chat.Chat;
 import com.bondhub.domain.transaction.Transaction;
-import com.bondhub.service.BondClassifier;
 import com.bondhub.service.dto.ChatDto;
 import com.bondhub.service.dto.TransactionDetailDto;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +17,6 @@ import java.util.Map;
 @Component
 public class AskManager {
 
-    private final BondClassifier bondClassifier;
-
     public List<Ask> convertToAsk(List<Chat> chats, List<Transaction> transactions) {
         Map<Bond, Ask> bondMap = new HashMap<>();
 
@@ -29,7 +26,7 @@ public class AskManager {
                     .add(ChatDto.builder()
                             .chatId(chat.getId())
                             .senderName(chat.getSenderName())
-                            .sendTime(chat.getSendTime())
+                            .chatDateTime(chat.getChatDateTime())
                             .content(chat.getContent())
                             .senderAddress(chat.getSenderAddress())
                             .build());

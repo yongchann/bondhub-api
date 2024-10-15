@@ -72,9 +72,8 @@ public class ChatProcessor {
     public List<Chat> convertToEntity(String date, List<ChatDto> chatDtos) {
         List<Chat> allChats = chatDtos.stream()
                 .map(chat -> Chat.builder()
-                        .chatDate(date)
+                        .chatDateTime(chat.getChatDateTime())
                         .senderName(chat.getSenderName())
-                        .sendTime(chat.getSendTime())
                         .content(chat.getContent())
                         .senderAddress(chat.getSenderAddress())
                         .status(ChatStatus.CREATED)
@@ -119,18 +118,12 @@ public class ChatProcessor {
 
         for (Chat chat : allChats) {
             String content = chat.getContent();
-            if (!uniqueChats.containsKey(content) ||
-                    isLaterTime(chat.getSendTime(), uniqueChats.get(content).getSendTime())) {
+            if (!uniqueChats.containsKey(content) || chat.getChatDateTime().isAfter(uniqueChats.get(content).getChatDateTime())) {
                 uniqueChats.put(content, chat);
             }
         }
 
         return new ArrayList<>(uniqueChats.values());
-    }
-
-    private boolean isLaterTime(String time1, String time2) {
-        // HH:MM:SS 형식의 시간 문자열을 비교
-        return time1.compareTo(time2) > 0;
     }
 
     private Map<String, String> getMultiBondChatHistoryMap() {

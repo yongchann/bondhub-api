@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Objects;
 
 @Builder
@@ -16,6 +19,8 @@ public class ChatDto {
     private Long chatId;
 
     private String chatDate;
+
+    private LocalDateTime chatDateTime;
 
     private String senderName;
 
@@ -29,7 +34,7 @@ public class ChatDto {
         return Chat.builder()
                 .status(ChatStatus.CREATED)
                 .content(chat.getContent())
-                .sendTime(chat.getSendTime())
+                .chatDateTime(LocalDateTime.of(LocalDate.parse(chat.getChatDate()), LocalTime.parse(chat.getSendTime())))
                 .senderName(chat.getSenderName())
                 .senderAddress(chat.getSenderAddress())
                 .build();

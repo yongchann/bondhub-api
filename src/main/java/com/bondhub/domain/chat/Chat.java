@@ -4,6 +4,7 @@ import com.bondhub.domain.bond.Bond;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,6 +19,8 @@ public class Chat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "chat_id")
     private Long id;
+
+    private LocalDateTime chatDateTime;
 
     private String chatDate;
 
@@ -59,9 +62,8 @@ public class Chat {
 
     public static Chat fromMultiBondChat(Chat multiBondChat, String singleBondContent, String dueDate) {
         return Chat.builder()
-                .chatDate(multiBondChat.getChatDate())
+                .chatDateTime(multiBondChat.getChatDateTime())
                 .senderName(multiBondChat.getSenderName())
-                .sendTime(multiBondChat.getSendTime())
                 .content(singleBondContent)
                 .senderAddress(multiBondChat.getSenderAddress())
                 .status(ChatStatus.SINGLE_DD)
