@@ -15,7 +15,7 @@ public class TransactionDto {
 
     private String bondName;
 
-    private String dueDate;
+    private String maturityDate;
 
     private List<TransactionDetailDto> details;
 }

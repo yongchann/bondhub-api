@@ -54,7 +54,7 @@ public class ChatParser {
                     .content(content)
                     .senderAddress(senderAddress)
                     .status(ChatStatus.CREATED)
-                    .dueDate("")
+                    .maturityDate("")
                     .build());
         }
         return chats;
@@ -66,16 +66,16 @@ public class ChatParser {
         return matcher.find() ? matcher.group(0).trim() : "";
     }
 
-    public List<String> extractDueDates(String content) {
+    public List<String> extractMaturityDates(String content) {
         Matcher matcher = Pattern.compile(VALID_DUE_DATE_PATTERN).matcher(content);
         List<String> dates = new ArrayList<>();
         while (matcher.find()) {
-            dates.add(standardizeDueDate(matcher.group()));
+            dates.add(standardizeMaturityDate(matcher.group()));
         }
         return dates;
     }
 
-    private String standardizeDueDate(String date) {
+    private String standardizeMaturityDate(String date) {
         date = date.replace('.', '-').replace('/', '-');
 
         String[] parts = date.split("-");
@@ -94,13 +94,13 @@ public class ChatParser {
                 throw new IllegalArgumentException("invalid split content, org chat doesn't contain " + singleBondContent);
             }
 
-            List<String> dueDates = extractDueDates(singleBondContent);
-            if (dueDates.size() != 1) {
+            List<String> maturityDates = extractMaturityDates(singleBondContent);
+            if (maturityDates.size() != 1) {
                 throw new IllegalArgumentException("invalid split content, due date count must be 1, content:" + singleBondContent);
             }
 
-            String dueDate = dueDates.get(0);
-            singleBondChats.add(Chat.fromMultiBondChat(multiBondChat, singleBondContent, dueDate));
+            String maturityDate = maturityDates.get(0);
+            singleBondChats.add(Chat.fromMultiBondChat(multiBondChat, singleBondContent, maturityDate));
         }
 
         return singleBondChats;

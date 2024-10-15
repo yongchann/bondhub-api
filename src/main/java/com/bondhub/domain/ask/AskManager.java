@@ -55,7 +55,7 @@ public class AskManager {
 
         // 결과를 만기일 기준으로 정렬하여 반환
         return bondMap.values().stream()
-                .sorted(Comparator.comparing(Ask::getDueDate))
+                .sorted(Comparator.comparing(Ask::getMaturityDate))
                 .toList();
     }
 }

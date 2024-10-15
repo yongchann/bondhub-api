@@ -15,7 +15,7 @@ public class BondChatDto {
 
     private String bondName;
 
-    private String dueDate;
+    private String maturityDate;
 
     private String grade;
 
@@ -24,7 +24,7 @@ public class BondChatDto {
     public static BondChatDto from(Bond bond) {
         return BondChatDto.builder()
                 .bondName(bond.getBondIssuer().getName())
-                .dueDate(bond.getDueDate())
+                .maturityDate(bond.getMaturityDate())
                 .grade(bond.getBondIssuer().getGrade())
                 .chats(new ArrayList<>())
                 .build();

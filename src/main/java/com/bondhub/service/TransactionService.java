@@ -35,7 +35,7 @@ public class TransactionService {
                 .map(tx -> TransactionDto.builder()
                         .id(tx.getId())
                         .bondName(tx.getBondName())
-                        .dueDate(tx.getMaturityDate())
+                        .maturityDate(tx.getMaturityDate())
                         .build())
                 .toList();
     }

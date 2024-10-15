@@ -6,5 +6,5 @@ import java.util.Optional;
 
 public interface BondRepository extends JpaRepository<Bond, Long> {
 
-    Optional<Bond> findByBondIssuerAndDueDate(BondIssuer bondIssuer, String dueDate);
+    Optional<Bond> findByBondIssuerAndMaturityDate(BondIssuer bondIssuer, String maturityDate);
 }

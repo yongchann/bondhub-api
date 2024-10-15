@@ -21,11 +21,11 @@ public class Bond {
     @JoinColumn(name = "bond_issuer_id")
     private BondIssuer bondIssuer;
 
-    private String dueDate;
+    private String maturityDate;
 
-    public Bond(BondIssuer bondIssuer, String dueDate) {
+    public Bond(BondIssuer bondIssuer, String maturityDate) {
         this.bondIssuer = bondIssuer;
-        this.dueDate = dueDate;
+        this.maturityDate = maturityDate;
     }
 
     @Override
@@ -34,12 +34,12 @@ public class Bond {
         if (o == null || getClass() != o.getClass()) return false;
         Bond bond = (Bond) o;
         return Objects.equals(bondIssuer.getId(), bond.bondIssuer.getId()) &&
-                Objects.equals(dueDate, bond.dueDate);
+                Objects.equals(maturityDate, bond.maturityDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bondIssuer.getId(), dueDate);
+        return Objects.hash(bondIssuer.getId(), maturityDate);
     }
 
 }

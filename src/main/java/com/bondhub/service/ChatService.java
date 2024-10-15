@@ -133,7 +133,7 @@ public class ChatService {
         }
 
         return bondMap.values().stream()
-                .sorted(Comparator.comparing(BondChatDto::getDueDate))
+                .sorted(Comparator.comparing(BondChatDto::getMaturityDate))
                 .toList();
     }
     @Transactional

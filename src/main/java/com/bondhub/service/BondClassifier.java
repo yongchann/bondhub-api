@@ -59,13 +59,13 @@ public class BondClassifier {
         }
     }
 
-    public Bond extractBond(String content, String dueDate) {
+    public Bond extractBond(String content, String maturityDate) {
         for (Map.Entry<String, BondIssuer> entry : aliasToIssuerMap.entrySet()) {
             String alias = entry.getKey();
             BondIssuer bondIssuer = entry.getValue();
             if (content.toUpperCase().contains(alias.toUpperCase())) {
-                return bondRepository.findByBondIssuerAndDueDate(bondIssuer, dueDate)
-                .orElseGet(() -> bondRepository.save(new Bond(bondIssuer, dueDate)));
+                return bondRepository.findByBondIssuerAndMaturityDate(bondIssuer, maturityDate)
+                .orElseGet(() -> bondRepository.save(new Bond(bondIssuer, maturityDate)));
             }
         }
         return null;

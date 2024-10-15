@@ -38,20 +38,20 @@ public class Chat {
     @JoinColumn(name = "bond_id")
     private Bond bond;
 
-    private String dueDate;
+    private String maturityDate;
 
     @Column(name = "content", length = 2000)
     private String content;
 
     private String senderAddress;
 
-    public void modifyStatusByDueDate(List<String> dueDateInContent) {
-        if (dueDateInContent.size() == 1) {
+    public void modifyStatusByMaturityDate(List<String> maturityDateInContent) {
+        if (maturityDateInContent.size() == 1) {
             status = ChatStatus.SINGLE_DD;
-            dueDate = dueDateInContent.get(0);
-        } else if (dueDateInContent.size() >= 2) {
+            maturityDate = maturityDateInContent.get(0);
+        } else if (maturityDateInContent.size() >= 2) {
             status = ChatStatus.MULTI_DD;
-            dueDate = "";
+            maturityDate = "";
         }
     }
 
@@ -63,14 +63,14 @@ public class Chat {
         this.bond = bond;
     }
 
-    public static Chat fromMultiBondChat(Chat multiBondChat, String singleBondContent, String dueDate) {
+    public static Chat fromMultiBondChat(Chat multiBondChat, String singleBondContent, String maturityDate) {
         return Chat.builder()
                 .chatDateTime(multiBondChat.getChatDateTime())
                 .senderName(multiBondChat.getSenderName())
                 .content(singleBondContent)
                 .senderAddress(multiBondChat.getSenderAddress())
                 .status(ChatStatus.SINGLE_DD)
-                .dueDate(dueDate)
+                .maturityDate(maturityDate)
                 .build();
     }
 

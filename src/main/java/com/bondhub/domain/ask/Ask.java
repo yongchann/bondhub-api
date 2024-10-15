@@ -18,7 +18,7 @@ public class Ask {
 
     private String bondName;
 
-    private String dueDate;
+    private String maturityDate;
 
     private String grade;
 
@@ -29,7 +29,7 @@ public class Ask {
     public static Ask from(Bond bond) {
         return Ask.builder()
                 .bondName(bond.getBondIssuer().getName())
-                .dueDate(bond.getDueDate())
+                .maturityDate(bond.getMaturityDate())
                 .grade(bond.getBondIssuer().getGrade())
                 .chats(new ArrayList<>())
                 .transactions(new ArrayList<>())

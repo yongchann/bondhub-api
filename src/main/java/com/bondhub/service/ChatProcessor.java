@@ -38,7 +38,7 @@ public class ChatProcessor {
         // 모든 호가가 NOT_USED, SINGLE_DD, MULTI_DD 로 분류됨
         allChats.stream()
                 .filter(chat -> isAskChat(chat.getContent()))
-                .forEach(chat -> chat.modifyStatusByDueDate(chatParser.extractDueDates(chat.getContent())));
+                .forEach(chat -> chat.modifyStatusByMaturityDate(chatParser.extractMaturityDates(chat.getContent())));
         log.info("[processChatStr] all chat are filtered and status modified by due date");
 
         // 복수 종목 호가 분리 이력 조회
@@ -83,7 +83,7 @@ public class ChatProcessor {
         // 모든 호가가 NOT_USED, SINGLE_DD, MULTI_DD 로 분류됨
         allChats.stream()
                 .filter(chat -> isAskChat(chat.getContent()))
-                .forEach(chat -> chat.modifyStatusByDueDate(chatParser.extractDueDates(chat.getContent())));
+                .forEach(chat -> chat.modifyStatusByMaturityDate(chatParser.extractMaturityDates(chat.getContent())));
         log.info("[processChat] all chat are filtered and status modified by due date");
 
         // 복수 종목 호가 분리 이력 조회
@@ -137,7 +137,7 @@ public class ChatProcessor {
     }
 
     public void assignBondByContent(Chat chat) {
-        Bond bond = bondClassifier.extractBond(chat.getContent(), chat.getDueDate());
+        Bond bond = bondClassifier.extractBond(chat.getContent(), chat.getMaturityDate());
         if (bond == null) {
             chat.setStatus(ChatStatus.UNCATEGORIZED);
             log.warn("failed to extract bond from [%s]".formatted(chat.getContent()));
