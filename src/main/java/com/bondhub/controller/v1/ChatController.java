@@ -19,6 +19,11 @@ public class ChatController {
 
     private final ChatService chatService;
 
+    @PostMapping("/api/v1/chat/reanalyze-all")
+    public void aggregateAllDailyChat(@RequestParam("date") String date) {
+        chatService.reanalyzeAll(date);
+    }
+
     @PostMapping("/api/v1/chat/recent")
     public void appendRecentChats(@RequestBody AppendChatRequest request) {
         chatService.append(request.getChatDate(), request.getChats());
