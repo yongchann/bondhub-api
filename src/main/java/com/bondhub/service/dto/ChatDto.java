@@ -1,9 +1,10 @@
 package com.bondhub.service.dto;
 
+import com.bondhub.domain.chat.Chat;
+import com.bondhub.domain.chat.ChatStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.Objects;
 
@@ -23,6 +24,16 @@ public class ChatDto {
     private String content;
 
     private String senderAddress;
+
+    public static Chat toEntity(ChatDto chat) {
+        return Chat.builder()
+                .status(ChatStatus.CREATED)
+                .content(chat.getContent())
+                .sendTime(chat.getSendTime())
+                .senderName(chat.getSenderName())
+                .senderAddress(chat.getSenderAddress())
+                .build();
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -1,12 +1,11 @@
 package com.bondhub.controller.v1;
 
-import com.bondhub.controller.v1.request.AppendRecentChatRequest;
+import com.bondhub.controller.v1.request.AppendChatRequest;
 import com.bondhub.controller.v1.request.DiscardChatsRequest;
 import com.bondhub.controller.v1.request.RetryForUncategorizedChatRequest;
 import com.bondhub.controller.v1.request.SplitMultiBondChatRequest;
 import com.bondhub.service.ChatService;
 import com.bondhub.service.dto.BondChatDto;
-import com.bondhub.service.dto.ChatDto;
 import com.bondhub.service.dto.MultiBondChatDto;
 import com.bondhub.service.dto.UncategorizedChatDto;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +20,8 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping("/api/v1/chat/recent")
-    public void appendRecentChats(@RequestBody AppendRecentChatRequest request) {
-        List<ChatDto> recentChats = request.getRecentChats().stream()
-                .map(chat -> ChatDto.builder()
-                        .chatDate(request.getChatDate())
-                        .senderName(chat.getSenderName())
-                        .sendTime(chat.getSendTime())
-                        .content(chat.getContent())
-                        .senderAddress(chat.getSenderAddress())
-                        .build())
-                .toList();
-
-        chatService.append(request.getChatDate(), recentChats);
+    public void appendRecentChats(@RequestBody AppendChatRequest request) {
+        chatService.append(request.getChatDate(), request.getChats());
     }
 
     @GetMapping("/api/v1/chat/uncategorized")
