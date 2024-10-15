@@ -2,6 +2,7 @@ package com.bondhub.service.dto;
 
 import com.bondhub.domain.chat.Chat;
 import com.bondhub.domain.chat.ChatStatus;
+import com.bondhub.domain.chat.TradeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,6 +38,7 @@ public class ChatDto {
                 .chatDateTime(LocalDateTime.of(LocalDate.parse(chat.getChatDate()), LocalTime.parse(chat.getSendTime())))
                 .senderName(chat.getSenderName())
                 .senderAddress(chat.getSenderAddress())
+                .tradeType(TradeType.UNCATEGORIZED)
                 .build();
     }
 

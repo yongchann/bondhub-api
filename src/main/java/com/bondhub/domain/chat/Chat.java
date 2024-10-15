@@ -29,6 +29,9 @@ public class Chat {
     private String sendTime;
 
     @Enumerated(EnumType.STRING)
+    private TradeType tradeType;
+
+    @Enumerated(EnumType.STRING)
     private ChatStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
