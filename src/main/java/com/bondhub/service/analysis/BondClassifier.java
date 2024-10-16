@@ -16,19 +16,31 @@ import java.util.TreeMap;
 public class BondClassifier {
 
     private final SortedMap<String, BondIssuer> creditAliasMap;
+    private final SortedMap<String, BondType> nonCreditBondTypeMap;
     private final BondAliasRepository bondAliasRepository;
 
     protected BondClassifier(BondAliasRepository bondAliasRepository) {
         this.bondAliasRepository = bondAliasRepository;
-        this.creditAliasMap = new TreeMap<>( // key length desc
-                (str1, str2) -> {
-                    int lengthComparison = Integer.compare(str2.length(), str1.length());
-                    if (lengthComparison != 0) {
-                        return lengthComparison;
-                    }
-                    return str1.compareTo(str2);
-                }
-        );
+        this.creditAliasMap = new TreeMap<>(BondClassifier::compare);
+        this.nonCreditBondTypeMap = new TreeMap<>(BondClassifier::compare);
+        nonCreditBondTypeMap.put("ABSTB", BondType.ABSTB);
+        nonCreditBondTypeMap.put("국민주택", BondType.KNHB);
+        nonCreditBondTypeMap.put("국주", BondType.KNHB);
+        nonCreditBondTypeMap.put("ABCP", BondType.ABCP);
+        nonCreditBondTypeMap.put("전단채", BondType.STB);
+        nonCreditBondTypeMap.put("전단", BondType.STB);
+        nonCreditBondTypeMap.put("FRN", BondType.FRN);
+        nonCreditBondTypeMap.put("CD+", BondType.FRN);
+        nonCreditBondTypeMap.put("CP", BondType.CP);
+        nonCreditBondTypeMap.put("CD", BondType.CD);
+    }
+
+    private static int compare(String str1, String str2) {
+        int lengthComparison = Integer.compare(str2.length(), str1.length());
+        if (lengthComparison != 0) {
+            return lengthComparison;
+        }
+        return str1.compareTo(str2);
     }
 
     @EventListener(BondAliasEvent.class)
@@ -55,11 +67,29 @@ public class BondClassifier {
         }
     }
 
-    public Optional<BondClassificationResult> extractCreditBondIssuer(String content) {
-        for (String alias : creditAliasMap.keySet()) {
-            if (content.contains(alias)) {
-                BondIssuer bondIssuer = creditAliasMap.get(alias);
-                return Optional.of(new BondClassificationResult(bondIssuer, alias));
+    public Optional<CreditClassificationResult> extractCreditBondIssuer(String content) {
+        String upperCase = content.toUpperCase();
+
+        for (String keyword : creditAliasMap.keySet()) {
+            if (upperCase.contains(keyword)) {
+                BondIssuer bondIssuer = creditAliasMap.get(keyword);
+                return Optional.of(new CreditClassificationResult(bondIssuer, keyword));
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<NonCreditClassificationResult> extractNonCreditBondType(String content) {
+        String upperCase = content.toUpperCase();
+
+        for (String keyword : nonCreditBondTypeMap.keySet()) {
+            if (upperCase.contains(keyword)) {
+                if (keyword.equals("국주") && content.contains("한국주택")){
+                    return Optional.empty();
+                }
+
+                BondType bondType = nonCreditBondTypeMap.get(keyword);
+                return Optional.of(new NonCreditClassificationResult(bondType, keyword));
             }
         }
         return Optional.empty();

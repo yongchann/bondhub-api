@@ -16,13 +16,13 @@ public enum BondType {
 
     MSB("통안채", "통화안정채권"),
 
-    CD("CD", "단기채권"),
     ABSTB("ABSTB", "단기채권"),
     ABCP("ABCP", "단기채권"),
-    CP("CP", "단기채권"),
     STB("전단채", "단기채권"),
-
-    FRN("FRN", "변동금리채권");
+    FRN("FRN", "변동금리채권"),
+    CP("CP", "단기채권"),
+    CD("CD", "단기채권"),
+    ;
 
     private final String name;
     private final String description;

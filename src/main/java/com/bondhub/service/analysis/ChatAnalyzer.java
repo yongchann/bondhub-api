@@ -1,10 +1,12 @@
 package com.bondhub.service.analysis;
 
+import com.bondhub.domain.bond.NonCreditClassificationResult;
 import com.bondhub.domain.chat.Chat;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
@@ -20,6 +22,12 @@ public class ChatAnalyzer {
         // 만기 설정
         List<String> maturities = maturityDateExtractor.extractAllMaturities(chat.getContent());
         chat.setMaturityDate(maturities);
+
+        Optional<NonCreditClassificationResult> nonCreditBondType = bondClassifier.extractNonCreditBondType(chat.getContent());
+        if (nonCreditBondType.isPresent()) {
+            chat.classified(nonCreditBondType.get().bondType(), nonCreditBondType.get().triggerKeyword());
+            return;
+        }
 
         if (chat.getMaturityDateCount() == 0) {
             /**

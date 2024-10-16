@@ -1,6 +1,7 @@
 package com.bondhub.domain.chat;
 
 import com.bondhub.domain.bond.BondIssuer;
+import com.bondhub.domain.bond.BondType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,6 +35,9 @@ public class Chat {
     @Enumerated(EnumType.STRING)
     private ChatStatus status = ChatStatus.UNCATEGORIZED;
 
+    @Enumerated(EnumType.STRING)
+    private BondType bondType;
+
     private String maturityDate;
 
     private int maturityDateCount;
@@ -65,6 +69,13 @@ public class Chat {
         this.bondIssuer = bondIssuer;
         this.triggerKeyword = triggerKeyword;
         this.status = ChatStatus.OK;
+        this.bondType = bondIssuer.getType();
+    }
+
+    public void classified(BondType bondType, String triggerKeyword) {
+        this.triggerKeyword = triggerKeyword;
+        this.status = ChatStatus.OK;
+        this.bondType = bondType;
     }
 
     public void setStatus(ChatStatus status) {
