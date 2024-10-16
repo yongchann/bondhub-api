@@ -20,9 +20,9 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
 
     @Query("SELECT c " +
             "FROM Chat c " +
-            "JOIN FETCH c.bondIssuer bi " +
+            "LEFT JOIN FETCH c.bondIssuer bi " +
             "WHERE c.chatDateTime BETWEEN :start AND :end " +
-            "AND bi.type = :bondType")
+            "AND c.bondType = :bondType")
     List<Chat> findByChatDateTimeBetweenAndBondIssuerType(LocalDateTime start, LocalDateTime end, BondType bondType);
 
     List<Chat> findByChatDateTimeBetweenAndStatus(LocalDateTime start, LocalDateTime end, ChatStatus status);
