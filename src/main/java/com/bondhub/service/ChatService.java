@@ -1,8 +1,10 @@
 package com.bondhub.service;
 
-import com.bondhub.domain.bond.Bond;
+import com.bondhub.domain.ask.Bond;
 import com.bondhub.domain.chat.*;
 import com.bondhub.domain.common.FileInfo;
+import com.bondhub.service.analysis.ChatAnalyzer;
+import com.bondhub.service.analysis.ChatParser;
 import com.bondhub.service.dto.BondChatDto;
 import com.bondhub.service.dto.ChatDto;
 import com.bondhub.service.dto.MultiBondChatDto;
@@ -20,6 +22,7 @@ import java.util.stream.Stream;
 
 import static com.bondhub.service.UploadService.CHAT_FILE_KEY_PREFIX;
 import static com.bondhub.service.UploadService.CHAT_FILE_SAVE_NAME;
+import static com.bondhub.service.analysis.ChatParser.CHAT_SPLIT_DELIMITER;
 import static com.bondhub.support.S3FileRepository.buildPath;
 
 @Slf4j
@@ -28,7 +31,8 @@ import static com.bondhub.support.S3FileRepository.buildPath;
 public class ChatService {
 
     private final ChatParser chatParser;
-    private final ChatProcessor chatProcessor;
+    private final ChatAnalyzer chatAnalyzer;
+    private final ChatAppender chatAppender;
 
     private final ChatRepository  chatRepository;
     private final ChatAggregationRepository chatAggregationRepository;
@@ -79,11 +83,11 @@ public class ChatService {
 
         // 개별 채팅에 대해 분류 및 기존 채팅 상태 변경
         multiBondChats.forEach(chat ->  chat.setStatus(ChatStatus.SEPARATED));
-        separatedChats.forEach(chatProcessor::assignBondByContent);
+        separatedChats.forEach(chatAnalyzer::analyze);
         chatRepository.saveAll(separatedChats);
 
         // 분리 이력 추가
-        String joinedContents = chatParser.joinContents(separatedChats.stream().map(Chat::getContent).toList());
+        String joinedContents = String.join(CHAT_SPLIT_DELIMITER, separatedChats.stream().map(Chat::getContent).toList());
         multiBondChatHistoryRepository.save(new MultiBondChatHistory(chatDate, originalContent, joinedContents));
 
         // 집계 업데이트
@@ -117,14 +121,16 @@ public class ChatService {
         } else if (targetStatus.equals(ChatStatus.UNCATEGORIZED)) {
             aggregation.discardUncategorizedChat(targetChats.size());
         } else {
-            throw new IllegalArgumentException("can not discard this type of chat: " + targetChats);
+            throw new IllegalArgumentException("can not discard this tradeType of chat: " + targetChats);
         }
     }
 
     private List<BondChatDto> groupByBond(List<Chat> chats) {
         Map<Bond, BondChatDto> bondMap = new HashMap<>();
         for (Chat chat : chats) {
-            bondMap.computeIfAbsent(chat.getBond(), k -> BondChatDto.from(chat.getBond()))
+            Bond bond = new Bond(chat.getBondIssuer(), chat.getMaturityDate());
+
+            bondMap.computeIfAbsent(bond, k -> BondChatDto.from(bond))
                     .getChats().add(ChatDto.builder()
                             .chatId(chat.getId())
                             .chatDateTime(chat.getChatDateTime())
@@ -137,8 +143,12 @@ public class ChatService {
                 .toList();
     }
     @Transactional
-    public void append(String chatDate, List<ChatDto> recentChats) {
-        List<Chat> chats = chatProcessor.convertToEntity(chatDate, recentChats);
+    public void append(String chatDate, List<ChatDto> newChats) {
+        List<Chat> chats = newChats.stream().map(ChatDto::toEntity).toList();
+
+        chats.forEach(chatAnalyzer::analyze);
+
+        chatAppender.append(chats);
 
         // 채팅 가공 상태에 따른 집계 결과를 생성
         Map<ChatStatus, Long> statusCounts = chats.stream()
@@ -156,7 +166,7 @@ public class ChatService {
         List<Chat> uncategorizedChats = chatRepository.findByChatDateAndStatus(chatDate, ChatStatus.UNCATEGORIZED);
 
         // 재분류
-        uncategorizedChats.forEach(chatProcessor::assignBondByContent);
+        uncategorizedChats.forEach(chatAnalyzer::analyze);
 
         // 집계 업데이트를 위한 조회
         ChatAggregation aggregation = chatAggregationRepository.findByChatDateWithPessimisticLock(chatDate)
@@ -181,12 +191,13 @@ public class ChatService {
         String entireChatStr = Stream.of("BB", "RB", "MM")
                 .map(type -> {
                     FileInfo chatFile = fileRepository.get(buildPath(CHAT_FILE_KEY_PREFIX, date, type), CHAT_FILE_SAVE_NAME);
-                    return chatProcessor.preprocess(chatFile.getContent());
+                    return chatParser.preprocess(chatFile.getContent());
                 })
                 .collect(Collectors.joining());
 
         // 채팅 가공 후 모두 저장
-        List<Chat> allChats = chatProcessor.processChatStr(date, entireChatStr);
+        List<Chat> allChats = chatParser.parseChatStr(date, entireChatStr);
+        allChats.forEach(chatAnalyzer::analyze);
         chatRepository.saveAll(allChats); // TODO JDBC Batch insert 적용
         log.info("[aggregateChat] created {} chats", allChats.size());
 

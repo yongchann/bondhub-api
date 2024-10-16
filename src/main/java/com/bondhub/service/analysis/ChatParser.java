@@ -1,4 +1,4 @@
-package com.bondhub.service;
+package com.bondhub.service.analysis;
 
 import com.bondhub.domain.chat.Chat;
 import com.bondhub.domain.chat.ChatStatus;
@@ -9,9 +9,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,12 +20,20 @@ public class ChatParser {
 
     private static final String CHAT_MESSAGE_SEARCH_PATTERN = "([A-Za-z\\.가-힣0-9 女]+) \\((\\d{2}:\\d{2}:\\d{2})\\) :\\s*(.*?)(?=(?:[A-Z0-9a-z\\.가-힣 女]+\\s\\(\\d{2}:\\d{2}:\\d{2}\\)|$))";
     private static final String SENDER_ADDRESS_PATTERN = "\\s*\\([^)]*\\)\\s*$|\\s*\\[[^]]*\\]\\s*$|\\s*\\{[^}]*\\}\\s*$|\\s*<[^>]*>\\s*$|\\s*▨[^▨]*▨\\s*$|\\s*【[^】]*】\\s*$";
-    private static final String VALID_DUE_DATE_PATTERN = "(\\d{2})([./ ])(0?[1-9]|1[0-2])\\2(0?[1-9]|[12][0-9]|3[01])";
-    private final static String CHAT_SPLIT_DELIMITER = "§";
+    public final static String CHAT_SPLIT_DELIMITER = "§";
 
-    public List<Chat> parseChatsFromRawText(String chatDate, String rawText) {
+    private static final Map<String, String> REPLACEMENT_RULES = Map.of(
+            "[부국채영]368-9532", "([부국채영]368-9532])",
+            "(DS투자증권 채권전략팀 02)709-2701)", "(DS투자증권 채권전략팀 02-709-2701)",
+            "[흥국채금 6260-2460)", "[흥국채금 6260-2460]",
+            "김성훈(부국)", "김성훈부국",
+            "\r\n", " ");
+
+    private final MaturityDateExtractor maturityDateExtractor;
+
+    public List<Chat> parseChatStr(String chatDate, String rawContentChat) {
         Pattern pattern = Pattern.compile(CHAT_MESSAGE_SEARCH_PATTERN);
-        Matcher matcher = pattern.matcher(rawText);
+        Matcher matcher = pattern.matcher(rawContentChat);
 
         List<Chat> chats = new ArrayList<>();
         while (matcher.find()) {
@@ -35,19 +41,7 @@ public class ChatParser {
             String sendTime = matcher.group(2);
             String content = matcher.group(3);
             String senderAddress = extractSenderAddress(content).trim();
-            if (senderAddress.isEmpty()) {
-                log.warn("[parseChatsFromRawText] senderAddress is empty, content: {}", content);
-            }
-
             content = content.replace(senderAddress, "").trim();
-
-            if (senderName.length() > 8) {
-                log.warn("[parseChatsFromRawText] length of senderName is over 8: {}", senderName);
-            }
-            if (content.length() < 4) {
-                continue;
-            }
-
             chats.add(Chat.builder()
                     .chatDateTime(LocalDateTime.of(LocalDate.parse(chatDate), LocalTime.parse(sendTime)))
                     .senderName(senderName)
@@ -57,33 +51,14 @@ public class ChatParser {
                     .maturityDate("")
                     .build());
         }
-        return chats;
+
+        return removeDuplication(chats);
     }
 
     public String extractSenderAddress(String content) {
         Pattern pattern = Pattern.compile(SENDER_ADDRESS_PATTERN);
         Matcher matcher = pattern.matcher(content);
         return matcher.find() ? matcher.group(0).trim() : "";
-    }
-
-    public List<String> extractMaturityDates(String content) {
-        Matcher matcher = Pattern.compile(VALID_DUE_DATE_PATTERN).matcher(content);
-        List<String> dates = new ArrayList<>();
-        while (matcher.find()) {
-            dates.add(standardizeMaturityDate(matcher.group()));
-        }
-        return dates;
-    }
-
-    private String standardizeMaturityDate(String date) {
-        date = date.replace('.', '-').replace('/', '-');
-
-        String[] parts = date.split("-");
-        if (parts[0].length() == 2) parts[0] = "20" + parts[0];
-        if (parts[1].length() == 1) parts[1] = "0" + parts[1];
-        if (parts[2].length() == 1) parts[2] = "0" + parts[2];
-
-        return String.join("-", parts);
     }
 
     public List<Chat> parseMultiBondChat(Chat multiBondChat, List<String> singleBondContents) {
@@ -94,7 +69,7 @@ public class ChatParser {
                 throw new IllegalArgumentException("invalid split content, org chat doesn't contain " + singleBondContent);
             }
 
-            List<String> maturityDates = extractMaturityDates(singleBondContent);
+            List<String> maturityDates = maturityDateExtractor.extractAllMaturities(singleBondContent);
             if (maturityDates.size() != 1) {
                 throw new IllegalArgumentException("invalid split content, due date count must be 1, content:" + singleBondContent);
             }
@@ -106,11 +81,28 @@ public class ChatParser {
         return singleBondChats;
     }
 
-    public String joinContents(List<String> splitContents) {
-        return String.join(CHAT_SPLIT_DELIMITER, splitContents);
+    public String preprocess(String rawText) {
+        int index = rawText.indexOf("\r\n");
+        rawText = rawText.substring(index + "\r\n".length());
+        for (Map.Entry<String, String> entry : REPLACEMENT_RULES.entrySet()) {
+            rawText = rawText.replace(entry.getKey(), entry.getValue());
+        }
+
+        return rawText;
     }
 
-    public List<String> splitJoinedContents(String joinedContents) {
-        return Arrays.stream(joinedContents.split(CHAT_SPLIT_DELIMITER)).toList();
+
+    public List<Chat> removeDuplication(List<Chat> allChats) {
+        Map<String, Chat> uniqueChats = new HashMap<>();
+
+        for (Chat chat : allChats) {
+            String content = chat.getContent();
+            if (!uniqueChats.containsKey(content) || chat.getChatDateTime().isAfter(uniqueChats.get(content).getChatDateTime())) {
+                uniqueChats.put(content, chat);
+            }
+        }
+
+        return new ArrayList<>(uniqueChats.values());
     }
+
 }

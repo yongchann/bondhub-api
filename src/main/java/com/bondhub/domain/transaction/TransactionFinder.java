@@ -8,11 +8,11 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Component
-public class TxReader {
+public class TransactionFinder {
 
     private final TransactionRepository transactionRepository;
 
-    public List<Transaction> getClassifiedTx(String txDate, BondType bondType) {
+    public List<Transaction> findDailyCreditTransactions(String txDate, BondType bondType) {
         return transactionRepository.findClassifiedTxWithBond(txDate, bondType);
     }
 

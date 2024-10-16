@@ -1,6 +1,5 @@
 package com.bondhub.domain.ask;
 
-import com.bondhub.domain.bond.Bond;
 import com.bondhub.domain.chat.Chat;
 import com.bondhub.domain.transaction.Transaction;
 import com.bondhub.service.dto.ChatDto;
@@ -21,7 +20,8 @@ public class AskManager {
         Map<Bond, Ask> bondMap = new HashMap<>();
 
         for (Chat chat : chats) {
-            bondMap.computeIfAbsent(chat.getBond(), k -> Ask.from(chat.getBond()))
+            Bond bond = new Bond(chat.getBondIssuer(), chat.getMaturityDate());
+            bondMap.computeIfAbsent(bond, k -> Ask.from(bond))
                     .getChats()
                     .add(ChatDto.builder()
                             .chatId(chat.getId())
@@ -34,7 +34,7 @@ public class AskManager {
 
         // 거래 내역을 순회하며 해당하는 채권에 추가
         for (Transaction transaction : transactions) {
-            Bond transactionBond = transaction.getBond();
+            Bond transactionBond = new Bond(transaction.getBondIssuer(), transaction.getMaturityDate());
             if (bondMap.containsKey(transactionBond)) {
                 bondMap.get(transactionBond)
                         .getTransactions()
@@ -46,11 +46,6 @@ public class AskManager {
                         ));
             }
             // 채팅이 없는 채권의 거래는 무시 (continue)
-        }
-
-        // 채팅과 거래 내역 정렬
-        for (Ask ask : bondMap.values()) {
-            ask.sortChats();
         }
 
         // 결과를 만기일 기준으로 정렬하여 반환

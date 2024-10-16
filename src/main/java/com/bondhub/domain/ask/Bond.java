@@ -1,6 +1,6 @@
-package com.bondhub.domain.bond;
+package com.bondhub.domain.ask;
 
-import jakarta.persistence.*;
+import com.bondhub.domain.bond.BondIssuer;
 import lombok.*;
 
 import java.util.Objects;
@@ -9,24 +9,11 @@ import java.util.Objects;
 @AllArgsConstructor
 @Builder
 @Getter
-@Entity
 public class Bond {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "bond_id")
-    private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bond_issuer_id")
     private BondIssuer bondIssuer;
 
     private String maturityDate;
-
-    public Bond(BondIssuer bondIssuer, String maturityDate) {
-        this.bondIssuer = bondIssuer;
-        this.maturityDate = maturityDate;
-    }
 
     @Override
     public boolean equals(Object o) {

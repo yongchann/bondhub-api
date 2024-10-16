@@ -4,13 +4,13 @@ import com.bondhub.domain.ask.Ask;
 import com.bondhub.domain.ask.AskManager;
 import com.bondhub.domain.bond.BondType;
 import com.bondhub.domain.chat.Chat;
-import com.bondhub.domain.chat.ChatReader;
+import com.bondhub.domain.chat.ChatFinder;
 import com.bondhub.domain.transaction.Transaction;
-import com.bondhub.domain.transaction.TxReader;
+import com.bondhub.domain.transaction.TransactionFinder;
+import com.bondhub.service.analysis.ChatParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -18,16 +18,14 @@ import java.util.List;
 public class AskService {
 
     private final AskManager askManager;
-    private final ChatReader chatReader;
-    private final ChatProcessor chatProcessor;
-    private final TxReader txReader;
+    private final ChatFinder chatFinder;
+    private final ChatParser chatParser;
+    private final TransactionFinder transactionFinder;
 
     public List<Ask> inquiry(String date, BondType bondType) {
-        List<Chat> chats = chatReader.getClassifiedChat(date, bondType);
-        ArrayList<Chat> uniqueChats = chatProcessor.removeDuplication(chats);
-
-        List<Transaction> transactions = txReader.getClassifiedTx(date, bondType);
-
+        List<Chat> chats = chatFinder.findDailyCreditSellChats(date, bondType);
+        List<Chat> uniqueChats = chatParser.removeDuplication(chats);
+        List<Transaction> transactions = transactionFinder.findDailyCreditTransactions(date, bondType);
         return askManager.convertToAsk(uniqueChats, transactions);
     }
 }

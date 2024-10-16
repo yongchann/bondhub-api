@@ -1,6 +1,6 @@
 package com.bondhub.service.dto;
 
-import com.bondhub.domain.bond.Bond;
+import com.bondhub.domain.ask.Bond;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

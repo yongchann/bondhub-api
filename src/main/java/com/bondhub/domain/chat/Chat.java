@@ -1,18 +1,18 @@
 package com.bondhub.domain.chat;
 
-import com.bondhub.domain.bond.Bond;
+import com.bondhub.domain.bond.BondIssuer;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 @Getter
 @Entity
+@Table(name = "chat", indexes = @Index(name = "idx_chat_date_time", columnList = "chat_date_time"))
 public class Chat {
 
     @Id
@@ -24,43 +24,48 @@ public class Chat {
 
     private String chatDate;
 
-    private String senderName;
-
     private String sendTime;
 
-    @Enumerated(EnumType.STRING)
-    private TradeType tradeType;
+    private String senderName;
 
     @Enumerated(EnumType.STRING)
-    private ChatStatus status;
+    private TradeType tradeType = TradeType.UNCATEGORIZED;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bond_id")
-    private Bond bond;
+    @Enumerated(EnumType.STRING)
+    private ChatStatus status = ChatStatus.UNCATEGORIZED;
 
     private String maturityDate;
+
+    private int maturityDateCount;
 
     @Column(name = "content", length = 2000)
     private String content;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bond_issuer_id")
+    private BondIssuer bondIssuer;
+
+    private String triggerKeyword;
+
     private String senderAddress;
 
-    public void modifyStatusByMaturityDate(List<String> maturityDateInContent) {
-        if (maturityDateInContent.size() == 1) {
-            status = ChatStatus.SINGLE_DD;
-            maturityDate = maturityDateInContent.get(0);
-        } else if (maturityDateInContent.size() >= 2) {
-            status = ChatStatus.MULTI_DD;
-            maturityDate = "";
-        }
+    public void initializeTradeType() {
+        tradeType = TradeType.determineTypeFrom(content);
+    }
+
+    public void setMaturityDate(List<String> maturityDates) {
+        this.maturityDateCount = maturityDates.size();
+        this.maturityDate = String.join(",", maturityDates);
+    }
+
+    public void classified(BondIssuer bondIssuer, String triggerKeyword) {
+        this.bondIssuer = bondIssuer;
+        this.triggerKeyword = triggerKeyword;
+        this.status = ChatStatus.OK;
     }
 
     public void setStatus(ChatStatus status) {
         this.status = status;
-    }
-
-    public void setBond(Bond bond) {
-        this.bond = bond;
     }
 
     public static Chat fromMultiBondChat(Chat multiBondChat, String singleBondContent, String maturityDate) {
@@ -74,16 +79,4 @@ public class Chat {
                 .build();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Chat chat = (Chat) o;
-        return Objects.equals(content, chat.content);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(content);
-    }
 }

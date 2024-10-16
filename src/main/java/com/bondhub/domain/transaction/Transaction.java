@@ -1,6 +1,6 @@
 package com.bondhub.domain.transaction;
 
-import com.bondhub.domain.bond.Bond;
+import com.bondhub.domain.bond.BondIssuer;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,13 +16,15 @@ public class Transaction {
     @Column(name = "transaction_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "bond_id")
-    private Bond bond;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bond_issuer_id")
+    private BondIssuer bondIssuer;
+
+    private String triggerKeyword;
 
     @Setter
     @Enumerated(EnumType.STRING)
-    private TransactionStatus status;
+    private TransactionStatus status = TransactionStatus.UNCATEGORIZED;
 
     private String time;                    // 시간
 //    private String marketType;              // 시장구분
@@ -62,18 +64,10 @@ public class Transaction {
 //    private String tradingType;             // 매매유형
 //    private String publicOrPrivate;         // 공모/사모
 
-
-    public void modifyStatusCreated(String transactionDate) {
-        this.status = TransactionStatus.CREATED;
-        this.transactionDate = transactionDate;
-    }
-
-    public void modifyStatusOk(Bond bond) {
+    public void classified(BondIssuer bondIssuer, String triggerKeyword) {
+        this.bondIssuer = bondIssuer;
+        this.triggerKeyword = triggerKeyword;
         this.status = TransactionStatus.OK;
-        this.bond = bond;
     }
 
-    public void modifyStatusNotUsed() {
-        this.status = TransactionStatus.NOT_USED;
-    }
 }

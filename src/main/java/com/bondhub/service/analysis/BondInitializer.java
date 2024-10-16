@@ -1,4 +1,4 @@
-package com.bondhub.service;
+package com.bondhub.service.analysis;
 
 import com.bondhub.domain.bond.*;
 import com.bondhub.service.dto.BondIssuerJson;

@@ -17,8 +17,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     int deleteAllByTransactionDateInBatch(String transactionDate);
 
     @Query("SELECT t FROM Transaction t " +
-            "JOIN FETCH t.bond b " +
-            "JOIN FETCH b.bondIssuer bi " +
+            "JOIN FETCH t.bondIssuer bi " +
             "WHERE t.transactionDate = :transactionDate " +
             "AND t.status = 'OK' " +
             "AND bi.type = :bondType")

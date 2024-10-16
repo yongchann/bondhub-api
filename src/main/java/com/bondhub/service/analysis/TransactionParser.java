@@ -1,15 +1,12 @@
-package com.bondhub.service;
+package com.bondhub.service.analysis;
 
-import com.bondhub.domain.bond.Bond;
 import com.bondhub.domain.transaction.Transaction;
 import com.bondhub.domain.transaction.TransactionStatus;
-import com.bondhub.domain.transaction.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -18,39 +15,12 @@ import java.util.*;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class TransactionProcessor {
-
-    private final TransactionRepository transactionRepository;
-    private final BondClassifier bondClassifier;
+public class TransactionParser {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
 
-    @Transactional
     public List<Transaction> processTransactionFileInputStream(String date, InputStream inputStream) {
-        List<Transaction> allTx = parseTransactions(date, inputStream);
-
-        for (Transaction tx : allTx) {
-            if (tx.getMaturityDate().startsWith("99") || tx.getBondName().contains("조건부")) {
-                tx.setStatus(TransactionStatus.NOT_USED);
-            } else {
-                assignBondByContent(tx);
-            }
-        }
-        return allTx;
-    }
-
-    public void assignBondByContent(Transaction tx) {
-        Bond bond = bondClassifier.extractBond(tx.getBondName(), tx.getMaturityDate());
-        if (bond == null) {
-            tx.setStatus(TransactionStatus.UNCATEGORIZED);
-            log.warn("failed to extract bond from [%s]".formatted(tx.getBondName()));
-        } else {
-            tx.modifyStatusOk(bond);
-        }
-    }
-
-    public List<Transaction> parseTransactions(String date, InputStream inputStream) {
         List<Transaction> transactions = new ArrayList<>();
 
         try (Workbook workbook = new XSSFWorkbook(inputStream)) {
@@ -72,7 +42,6 @@ public class TransactionProcessor {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return transactions;
     }
 

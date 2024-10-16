@@ -1,6 +1,5 @@
 package com.bondhub.domain.ask;
 
-import com.bondhub.domain.bond.Bond;
 import com.bondhub.service.dto.ChatDto;
 import com.bondhub.service.dto.TransactionDetailDto;
 import lombok.AllArgsConstructor;
@@ -34,10 +33,6 @@ public class Ask {
                 .chats(new ArrayList<>())
                 .transactions(new ArrayList<>())
                 .build();
-    }
-
-    public void sortChats() {
-        chats.sort(Comparator.comparing(ChatDto::getSendTime));
     }
 
 }

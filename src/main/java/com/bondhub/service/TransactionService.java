@@ -2,6 +2,8 @@ package com.bondhub.service;
 
 import com.bondhub.domain.common.FileInfo;
 import com.bondhub.domain.transaction.*;
+import com.bondhub.service.analysis.TransactionAnalyzer;
+import com.bondhub.service.analysis.TransactionParser;
 import com.bondhub.service.dto.TransactionDto;
 import com.bondhub.support.S3FileRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,8 @@ import static com.bondhub.support.S3FileRepository.buildPath;
 @Service
 public class TransactionService {
 
-    private final TransactionProcessor transactionProcessor;
+    private final TransactionParser transactionParser;
+    private final TransactionAnalyzer transactionAnalyzer;
 
     private final S3FileRepository fileRepository;
     private final TransactionRepository transactionRepository;
@@ -50,7 +53,8 @@ public class TransactionService {
         InputStream inputStream = file.getInputStream();
 
         // 집계
-        List<Transaction> allTx = transactionProcessor.processTransactionFileInputStream(date, inputStream);
+        List<Transaction> allTx = transactionParser.processTransactionFileInputStream(date, inputStream);
+        allTx.forEach(transactionAnalyzer::analyze);
         transactionRepository.saveAll(allTx);
         log.info("[aggregateTransaction] created {} transactions", allTx.size());
 
