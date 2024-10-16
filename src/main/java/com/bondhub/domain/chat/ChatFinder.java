@@ -32,5 +32,11 @@ public class ChatFinder {
                 .map(Optional::get)
                 .collect(Collectors.toList());
     }
+
+    public List<Chat> findDailyByStatus(String date, ChatStatus status) {
+        LocalDateTime start = LocalDateTime.of(LocalDate.parse(date), LocalTime.MIN);
+        LocalDateTime end = LocalDateTime.of(LocalDate.parse(date), LocalTime.MAX);
+        return chatRepository.findByChatDateTimeBetweenAndStatus(start, end, status);
+    }
 }
 

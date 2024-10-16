@@ -7,8 +7,7 @@ import com.bondhub.service.analysis.ChatAnalyzer;
 import com.bondhub.service.analysis.ChatParser;
 import com.bondhub.service.dto.BondChatDto;
 import com.bondhub.service.dto.ChatDto;
-import com.bondhub.service.dto.MultiBondChatDto;
-import com.bondhub.service.dto.UncategorizedChatDto;
+import com.bondhub.service.dto.ChatGroupByContentDto;
 import com.bondhub.service.exception.NotFoundAggregationException;
 import com.bondhub.support.S3FileRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,34 +33,22 @@ public class ChatService {
     private final ChatAnalyzer chatAnalyzer;
     private final ChatAppender chatAppender;
 
+    private final ChatFinder chatFinder;
     private final ChatRepository  chatRepository;
     private final ChatAggregationRepository chatAggregationRepository;
     private final MultiBondChatHistoryRepository multiBondChatHistoryRepository;
 
     private final S3FileRepository fileRepository;
 
-    public List<UncategorizedChatDto> findUncategorizedChats(String chatDate) {
-        List<Chat> chats = chatRepository.findByChatDateAndStatus(chatDate, ChatStatus.UNCATEGORIZED);
+    public List<ChatGroupByContentDto> getChatsGroupByContent(String chatDate, ChatStatus status) {
+        List<Chat> chats = chatFinder.findDailyByStatus(chatDate, status);
+
         Map<String, List<Chat>> groupedByContent = chats.stream().collect(Collectors.groupingBy(Chat::getContent));
 
-        List<UncategorizedChatDto> result = new ArrayList<>();
+        List<ChatGroupByContentDto> result = new ArrayList<>();
         groupedByContent.forEach((content, value) -> {
             List<Long> ids = value.stream().map(Chat::getId).toList();
-            result.add(new UncategorizedChatDto(content, ids));
-        });
-
-        result.sort((c1, c2) -> Integer.compare(c2.getIds().size(), c1.getIds().size()));
-        return result;
-    }
-
-    public List<MultiBondChatDto> findMultiBondChats(String chatDate) {
-        List<Chat> chats = chatRepository.findByChatDateAndStatus(chatDate, ChatStatus.MULTI_DD);
-        Map<String, List<Chat>> groupedByContent = chats.stream().collect(Collectors.groupingBy(Chat::getContent));
-
-        List<MultiBondChatDto> result = new ArrayList<>();
-        groupedByContent.forEach((content, value) -> {
-            List<Long> ids = value.stream().map(Chat::getId).toList();
-            result.add(new MultiBondChatDto(content, ids));
+            result.add(new ChatGroupByContentDto(content, ids));
         });
 
         result.sort((c1, c2) -> Integer.compare(c2.getIds().size(), c1.getIds().size()));
@@ -70,7 +57,7 @@ public class ChatService {
 
     @Transactional
     public int split(String chatDate, List<Long> targetIds, String originalContent, List<String> singleBondContents) {
-        List<Chat> multiBondChats = chatRepository.findByChatDateAndStatusAndIdIn(chatDate, ChatStatus.MULTI_DD, targetIds);
+        List<Chat> multiBondChats = chatRepository.findByChatDateAndStatusAndIdIn(chatDate, ChatStatus.NEEDS_SEPARATION, targetIds);
         if (multiBondChats.isEmpty()) {
             throw new IllegalArgumentException("대상 복수 종목 호가가 올바르지 않습니다.");
         }
@@ -116,7 +103,7 @@ public class ChatService {
         ChatAggregation aggregation = chatAggregationRepository.findByChatDateWithPessimisticLock(chatDate)
                 .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + chatDate));
 
-        if (targetStatus.equals(ChatStatus.MULTI_DD)) {
+        if (targetStatus.equals(ChatStatus.NEEDS_SEPARATION)) {
             aggregation.discardMultiDueDateChat(targetChats.size());
         } else if (targetStatus.equals(ChatStatus.UNCATEGORIZED)) {
             aggregation.discardUncategorizedChat(targetChats.size());
@@ -158,7 +145,6 @@ public class ChatService {
                 .orElseGet(() -> chatAggregationRepository.save(ChatAggregation.create(chatDate)));
 
         chatAggregation.update(statusCounts);
-        chatRepository.saveAll(chats);
     }
 
     @Transactional
@@ -209,7 +195,7 @@ public class ChatService {
                 .chatDate(date)
                 .totalChatCount(allChats.size())
                 .notUsedChatCount(statusCounts.getOrDefault(ChatStatus.CREATED, 0L))
-                .multiDueDateChatCount(statusCounts.getOrDefault(ChatStatus.MULTI_DD, 0L))
+                .multiDueDateChatCount(statusCounts.getOrDefault(ChatStatus.NEEDS_SEPARATION, 0L))
                 .uncategorizedChatCount(statusCounts.getOrDefault(ChatStatus.UNCATEGORIZED, 0L))
                 .fullyProcessedChatCount(statusCounts.getOrDefault(ChatStatus.OK, 0L))
                 .build();

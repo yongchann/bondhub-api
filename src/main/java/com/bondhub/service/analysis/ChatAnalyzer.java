@@ -1,6 +1,5 @@
 package com.bondhub.service.analysis;
 
-import com.bondhub.domain.bond.BondClassificationResult;
 import com.bondhub.domain.chat.Chat;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -31,10 +30,10 @@ public class ChatAnalyzer {
              * 4. 만기 중 연도가 생략된 단기 채권
              */
         } else if (chat.getMaturityDateCount() == 1) {
-            BondClassificationResult result = bondClassifier.extractBondIssuer(chat.getContent());
-            if (result.bondIssuer() != null) {
-                chat.classified(result.bondIssuer(), result.triggerKeyword());
-            }
+            bondClassifier.extractCreditBondIssuer(chat.getContent()).ifPresentOrElse(
+                    result -> chat.classified(result.bondIssuer(), result.triggerKeyword()), // 분류 성공
+                    chat::failedClassified);                                  // 분류 실패
+
         } else {
             // TODO 여러 만기가 추출된 채팅 핸들링
         }

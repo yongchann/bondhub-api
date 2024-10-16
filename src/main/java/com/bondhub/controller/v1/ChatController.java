@@ -4,10 +4,10 @@ import com.bondhub.controller.v1.request.AppendChatRequest;
 import com.bondhub.controller.v1.request.DiscardChatsRequest;
 import com.bondhub.controller.v1.request.RetryForUncategorizedChatRequest;
 import com.bondhub.controller.v1.request.SplitMultiBondChatRequest;
+import com.bondhub.domain.chat.ChatStatus;
 import com.bondhub.service.ChatService;
 import com.bondhub.service.dto.BondChatDto;
-import com.bondhub.service.dto.MultiBondChatDto;
-import com.bondhub.service.dto.UncategorizedChatDto;
+import com.bondhub.service.dto.ChatGroupByContentDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,19 +29,14 @@ public class ChatController {
         chatService.append(request.getChatDate(), request.getChats());
     }
 
-    @GetMapping("/api/v1/chat/uncategorized")
-    public List<UncategorizedChatDto> findUncategorizedChats(@RequestParam("date") String date) {
-        return chatService.findUncategorizedChats(date);
+    @GetMapping("/api/v1/chat/group")
+    public List<ChatGroupByContentDto> groupedChats(@RequestParam("date") String date, @RequestParam("status") ChatStatus status) {
+        return chatService.getChatsGroupByContent(date, status);
     }
 
     @PostMapping("/api/v1/chat/uncategorized/retry")
     public List<BondChatDto> retryAggregation(@RequestBody RetryForUncategorizedChatRequest request) {
         return chatService.retryForUncategorizedChat(request.getDate());
-    }
-
-    @GetMapping("/api/v1/chat/multi-bond")
-    public List<MultiBondChatDto> findMultiBondChats(@RequestParam("date") String date) {
-        return chatService.findMultiBondChats(date);
     }
 
     @PostMapping("/api/v1/chat/multi-bond/split")

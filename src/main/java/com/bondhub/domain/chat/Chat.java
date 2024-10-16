@@ -54,6 +54,9 @@ public class Chat {
     }
 
     public void setMaturityDate(List<String> maturityDates) {
+        if (maturityDates.size() > 1) {
+            this.status = ChatStatus.NEEDS_SEPARATION;
+        }
         this.maturityDateCount = maturityDates.size();
         this.maturityDate = String.join(",", maturityDates);
     }
@@ -74,9 +77,13 @@ public class Chat {
                 .senderName(multiBondChat.getSenderName())
                 .content(singleBondContent)
                 .senderAddress(multiBondChat.getSenderAddress())
-                .status(ChatStatus.SINGLE_DD)
+                .status(ChatStatus.CREATED)
                 .maturityDate(maturityDate)
                 .build();
     }
 
+    public void failedClassified() {
+        this.status = ChatStatus.UNCATEGORIZED;
+        this.triggerKeyword = "";
+    }
 }

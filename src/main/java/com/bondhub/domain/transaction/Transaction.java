@@ -70,4 +70,9 @@ public class Transaction {
         this.status = TransactionStatus.OK;
     }
 
+    public void failedClassified() {
+        this.status = TransactionStatus.UNCATEGORIZED;
+        this.triggerKeyword = "";
+    }
+
 }

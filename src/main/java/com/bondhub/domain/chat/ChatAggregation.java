@@ -43,7 +43,7 @@ public class ChatAggregation extends BaseTimeEntity {
 
         this.totalChatCount += totalCount;
         this.notUsedChatCount += statusCounts.getOrDefault(ChatStatus.CREATED, 0L);
-        this.multiDueDateChatCount += statusCounts.getOrDefault(ChatStatus.MULTI_DD, 0L);
+        this.multiDueDateChatCount += statusCounts.getOrDefault(ChatStatus.NEEDS_SEPARATION, 0L);
         this.uncategorizedChatCount += statusCounts.getOrDefault(ChatStatus.UNCATEGORIZED, 0L);
         this.fullyProcessedChatCount += statusCounts.getOrDefault(ChatStatus.OK, 0L);
     }

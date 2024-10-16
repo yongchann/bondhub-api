@@ -7,7 +7,7 @@ import java.util.List;
 
 @AllArgsConstructor
 @Getter
-public class UncategorizedChatDto {
+public class ChatGroupByContentDto {
 
     private String content;
 
