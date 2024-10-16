@@ -23,33 +23,29 @@ public class Chat {
 
     private LocalDateTime chatDateTime;
 
-    private String chatDate;
-
-    private String sendTime;
-
-    private String senderName;
+    @Column(name = "content", length = 2000)
+    private String content;
 
     @Enumerated(EnumType.STRING)
-    private TradeType tradeType = TradeType.UNCATEGORIZED;
+    private TradeType tradeType;
 
     @Enumerated(EnumType.STRING)
-    private ChatStatus status = ChatStatus.UNCATEGORIZED;
+    private ChatStatus status;
 
     @Enumerated(EnumType.STRING)
     private BondType bondType;
-
-    private String maturityDate;
-
-    private int maturityDateCount;
-
-    @Column(name = "content", length = 2000)
-    private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bond_issuer_id")
     private BondIssuer bondIssuer;
 
+    private String maturityDate; // joined string with delimiter ','
+
+    private int maturityDateCount;
+
     private String triggerKeyword;
+
+    private String senderName;
 
     private String senderAddress;
 

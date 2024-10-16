@@ -11,12 +11,9 @@ import java.util.List;
 public interface ChatRepository extends JpaRepository<Chat, Long> {
 
     @Modifying
-    @Query("DELETE FROM Chat c WHERE c.chatDate = :chatDate")
-    int deleteAllByChatDateInBatch(String chatDate);
+    int deleteByChatDateTimeBetween(LocalDateTime start, LocalDateTime end);
 
-    List<Chat> findByChatDateAndStatus(String chatDate, ChatStatus status);
-
-    List<Chat> findByChatDateAndStatusAndIdIn(String chatDate, ChatStatus status, List<Long> ids);
+    List<Chat> findByChatDateTimeBetweenAndStatusAndIdIn(LocalDateTime start, LocalDateTime end, ChatStatus status, List<Long> ids);
 
     @Query("SELECT c " +
             "FROM Chat c " +

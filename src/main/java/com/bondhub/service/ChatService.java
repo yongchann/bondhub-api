@@ -34,6 +34,7 @@ public class ChatService {
     private final ChatAppender chatAppender;
 
     private final ChatFinder chatFinder;
+    private final ChatRemover chatRemover;
     private final ChatRepository  chatRepository;
     private final ChatAggregationRepository chatAggregationRepository;
     private final MultiBondChatHistoryRepository multiBondChatHistoryRepository;
@@ -57,7 +58,7 @@ public class ChatService {
 
     @Transactional
     public int split(String chatDate, List<Long> targetIds, String originalContent, List<String> singleBondContents) {
-        List<Chat> multiBondChats = chatRepository.findByChatDateAndStatusAndIdIn(chatDate, ChatStatus.NEEDS_SEPARATION, targetIds);
+        List<Chat> multiBondChats = chatFinder.findDailyByStatus(chatDate, ChatStatus.NEEDS_SEPARATION, targetIds);
         if (multiBondChats.isEmpty()) {
             throw new IllegalArgumentException("대상 복수 종목 호가가 올바르지 않습니다.");
         }
@@ -94,7 +95,7 @@ public class ChatService {
 
     @Transactional
     public void discardChats(String chatDate, ChatStatus targetStatus, List<Long> chatIds) {
-        List<Chat> targetChats = chatRepository.findByChatDateAndStatusAndIdIn(chatDate, targetStatus, chatIds);
+        List<Chat> targetChats = chatFinder.findDailyByStatus(chatDate, targetStatus, chatIds);
         if (chatIds.size() != targetChats.size()) {
             throw new IllegalArgumentException("Mismatch between requested and retrieved chat count.");
         }
@@ -149,7 +150,7 @@ public class ChatService {
 
     @Transactional
     public List<BondChatDto> retryForUncategorizedChat(String chatDate) {
-        List<Chat> uncategorizedChats = chatRepository.findByChatDateAndStatus(chatDate, ChatStatus.UNCATEGORIZED);
+        List<Chat> uncategorizedChats = chatFinder.findDailyByStatus(chatDate, ChatStatus.UNCATEGORIZED);
 
         // 재분류
         uncategorizedChats.forEach(chatAnalyzer::analyze);
@@ -170,7 +171,7 @@ public class ChatService {
     @Transactional
     public void reanalyzeAll(String date) {
         // 홰당 일자의 채팅을 모두 삭제
-        int deletedCount = chatRepository.deleteAllByChatDateInBatch(date);
+        int deletedCount = chatRemover.removeDailyAll(date);
         log.info("[aggregateChat] deleted {} chats", deletedCount);
 
         // 3개의 채팅 데이터 조회 후 하나의 문자열로 병합
