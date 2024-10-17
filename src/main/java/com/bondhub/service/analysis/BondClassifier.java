@@ -88,6 +88,10 @@ public class BondClassifier {
                     return Optional.empty();
                 }
 
+                if (keyword.equals("FRN") && content.contains("변고정")){
+                    return Optional.empty();
+                }
+
                 BondType bondType = nonCreditBondTypeMap.get(keyword);
                 return Optional.of(new NonCreditClassificationResult(bondType, keyword));
             }
