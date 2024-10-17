@@ -28,6 +28,7 @@ public class BondClassifier {
         nonCreditBondTypeMap.put("국주", BondType.KNHB);
         nonCreditBondTypeMap.put("ABCP", BondType.ABCP);
         nonCreditBondTypeMap.put("전단채", BondType.STB);
+        nonCreditBondTypeMap.put("통안", BondType.MSB);
         nonCreditBondTypeMap.put("전단", BondType.STB);
         nonCreditBondTypeMap.put("FRN", BondType.FRN);
         nonCreditBondTypeMap.put("CD+", BondType.FRN);
