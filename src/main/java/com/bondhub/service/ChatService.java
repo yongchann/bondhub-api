@@ -128,7 +128,7 @@ public class ChatService {
 
         chats.forEach(chatAnalyzer::analyze);
 
-        chatAppender.append(chats);
+        chatAppender.appendInBatch(chats);
 
         // 채팅 가공 상태에 따른 집계 결과를 생성
         Map<ChatStatus, Long> statusCounts = chats.stream()
