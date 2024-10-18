@@ -1,5 +1,7 @@
 package com.bondhub.service;
 
+import com.bondhub.domain.aggregation.ChatAggregation;
+import com.bondhub.domain.aggregation.ChatAggregationRepository;
 import com.bondhub.domain.ask.Bond;
 import com.bondhub.domain.chat.*;
 import com.bondhub.service.analysis.ChatAnalyzer;

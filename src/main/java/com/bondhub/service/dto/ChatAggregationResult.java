@@ -1,6 +1,6 @@
 package com.bondhub.service.dto;
 
-import com.bondhub.domain.chat.ChatAggregation;
+import com.bondhub.domain.aggregation.ChatAggregation;
 import lombok.*;
 
 import java.time.LocalDateTime;

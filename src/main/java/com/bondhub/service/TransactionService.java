@@ -1,5 +1,7 @@
 package com.bondhub.service;
 
+import com.bondhub.domain.aggregation.TransactionAggregation;
+import com.bondhub.domain.aggregation.TransactionAggregationRepository;
 import com.bondhub.domain.common.FileInfo;
 import com.bondhub.domain.transaction.*;
 import com.bondhub.service.analysis.TransactionAnalyzer;

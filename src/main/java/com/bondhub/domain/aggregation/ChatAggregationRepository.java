@@ -1,4 +1,4 @@
-package com.bondhub.domain.chat;
+package com.bondhub.domain.aggregation;
 
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
