@@ -1,7 +1,5 @@
 package com.bondhub.domain.aggregation;
 
-import com.bondhub.service.dto.ChatAggregationResult;
-import com.bondhub.service.dto.TransactionAggregationResult;
 import com.bondhub.service.exception.NotFoundAggregationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -13,17 +11,23 @@ public class AnalysisSummaryReader {
     private final ChatAggregationRepository chatAggregationRepository;
     private final TransactionAggregationRepository transactionAggregationRepository;
 
-    public ChatAggregationResult getChatAggregation(String date) {
-        ChatAggregation aggregation = chatAggregationRepository.findByChatDate(date)
-                .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + date));
-
-        return ChatAggregationResult.from(aggregation);
+    public ChatAggregation findOrCreateChatAggregation(String chatDate) {
+        return chatAggregationRepository.findByChatDateWithPessimisticLock(chatDate)
+                .orElseGet(() -> chatAggregationRepository.save(ChatAggregation.create(chatDate)));
     }
 
-    public TransactionAggregationResult getTransactionAggregation(String date) {
-        TransactionAggregation aggregation = transactionAggregationRepository.findTopByTransactionDateOrderByCreatedDateTimeDesc(date)
-                .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + date));
+    public TransactionAggregation findOrCreateTransactionAggregation(String date) {
+        return transactionAggregationRepository.findTopByTransactionDateOrderByCreatedDateTimeDesc(date)
+                .orElseGet(() -> transactionAggregationRepository.save(TransactionAggregation.init(date)));
+    }
 
-        return TransactionAggregationResult.from(aggregation);
+    public ChatAggregation getChatAggregation(String date) {
+        return chatAggregationRepository.findByChatDate(date)
+                .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + date));
+    }
+
+    public TransactionAggregation getTransactionAggregation(String date) {
+        return transactionAggregationRepository.findTopByTransactionDateOrderByCreatedDateTimeDesc(date)
+                .orElseThrow(() -> new NotFoundAggregationException("not found chat aggregation of " + date));
     }
 }

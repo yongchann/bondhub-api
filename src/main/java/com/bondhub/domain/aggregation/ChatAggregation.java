@@ -1,11 +1,14 @@
 package com.bondhub.domain.aggregation;
 
+import com.bondhub.domain.chat.Chat;
 import com.bondhub.domain.chat.ChatStatus;
 import com.bondhub.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -37,35 +40,34 @@ public class ChatAggregation extends BaseTimeEntity {
                 .build();
     }
 
-    public void update(Map<ChatStatus, Long> statusCounts) {
-        long totalCount = statusCounts.values().stream()
-                .mapToLong(Long::longValue)
-                .sum();
+    public void update(List<Chat> singleBondChats, int multiBondChatsSize) {
+        Map<ChatStatus, Long> groupByStatus = singleBondChats.stream()
+                .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
 
-        this.totalChatCount += totalCount;
-        this.notUsedChatCount += statusCounts.getOrDefault(ChatStatus.CREATED, 0L);
-        this.multiDueDateChatCount += statusCounts.getOrDefault(ChatStatus.NEEDS_SEPARATION, 0L);
-        this.uncategorizedChatCount += statusCounts.getOrDefault(ChatStatus.UNCATEGORIZED, 0L);
-        this.fullyProcessedChatCount += statusCounts.getOrDefault(ChatStatus.OK, 0L);
+        this.totalChatCount += singleBondChats.size() + multiBondChatsSize;
+        this.multiDueDateChatCount += multiBondChatsSize;
+        this.notUsedChatCount += groupByStatus.getOrDefault(ChatStatus.CREATED, 0L);
+        this.uncategorizedChatCount += groupByStatus.getOrDefault(ChatStatus.UNCATEGORIZED, 0L);
+        this.fullyProcessedChatCount += groupByStatus.getOrDefault(ChatStatus.OK, 0L);
     }
 
-    public void updateRetrialOfUncategorizedChat(long fullyProcessedChatCount) {
-        this.uncategorizedChatCount -= fullyProcessedChatCount;
-        this.fullyProcessedChatCount += fullyProcessedChatCount;
+    public void updateSeparation(List<Chat> separatedChats) {
+        Map<ChatStatus, Long> groupByStatus = separatedChats.stream()
+                .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
+
+        this.multiDueDateChatCount -= 1;
+        this.notUsedChatCount += groupByStatus.getOrDefault(ChatStatus.CREATED, 0L);
+        this.uncategorizedChatCount += groupByStatus.getOrDefault(ChatStatus.UNCATEGORIZED, 0L);
+        this.fullyProcessedChatCount += groupByStatus.getOrDefault(ChatStatus.OK, 0L);
     }
 
-    public void updateMultiDueDateSeparation(long multiBondChatCount, long uncategorizedChatCount, long fullyProcessedChatCount) {
-        this.multiDueDateChatCount -= multiBondChatCount;
-        this.uncategorizedChatCount += uncategorizedChatCount;
-        this.fullyProcessedChatCount += fullyProcessedChatCount;
-    }
+    public void updateRetrial(List<Chat> uncategorizedChats) {
+        Map<ChatStatus, Long> groupByStatus = uncategorizedChats.stream()
+                .collect(Collectors.groupingBy(Chat::getStatus, Collectors.counting()));
 
-    public void discardMultiDueDateChat(long cnt) {
-        this.multiDueDateChatCount -= cnt;
-    }
-
-    public void discardUncategorizedChat(long cnt) {
-        this.uncategorizedChatCount -= cnt;
+        Long success = groupByStatus.getOrDefault(ChatStatus.OK, 0L);
+        this.uncategorizedChatCount -= success;
+        this.fullyProcessedChatCount += success;
     }
 
 }

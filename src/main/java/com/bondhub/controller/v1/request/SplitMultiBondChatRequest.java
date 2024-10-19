@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 public class SplitMultiBondChatRequest {
 
-    private List<Long> ids;
+    private Long multiBondChatId;
 
     private String originalContent;
 

@@ -44,10 +44,9 @@ public class ChatJdbcRepository {
                 "bond_type, " +
                 "bond_issuer_id, " +
                 "maturity_date, " +
-                "maturity_date_count, " +
                 "trigger_keyword, " +
                 "sender_name, " +
-                "sender_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "sender_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
@@ -58,14 +57,12 @@ public class ChatJdbcRepository {
                 ps.setString(3, chat.getTradeType().name());
                 ps.setString(4, chat.getStatus().name());
 
-//                ps.setString(5, chat.getBondType().name());
                 if (chat.getBondType() != null) {
                     ps.setString(5, chat.getBondType().name());
                 } else {
                     ps.setNull(5, Types.VARCHAR);
                 }
 
-//                ps.setLong(6, chat.getBondIssuer().getId());
                 if (chat.getBondIssuer() != null && chat.getBondIssuer().getId() != null) {
                     ps.setLong(6, chat.getBondIssuer().getId());
                 } else {
@@ -74,10 +71,9 @@ public class ChatJdbcRepository {
 
 
                 ps.setString(7, chat.getMaturityDate());
-                ps.setInt(8, chat.getMaturityDateCount());
-                ps.setString(9, chat.getTriggerKeyword());
-                ps.setString(10, chat.getSenderName());
-                ps.setString(11, chat.getSenderAddress());
+                ps.setString(8, chat.getTriggerKeyword());
+                ps.setString(9, chat.getSenderName());
+                ps.setString(10, chat.getSenderAddress());
             }
 
             @Override

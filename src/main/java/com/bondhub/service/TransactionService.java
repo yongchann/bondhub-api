@@ -1,78 +1,69 @@
 package com.bondhub.service;
 
-import com.bondhub.domain.aggregation.TransactionAggregation;
-import com.bondhub.domain.aggregation.TransactionAggregationRepository;
+import com.bondhub.domain.aggregation.AnalysisSummaryUpdater;
 import com.bondhub.domain.common.FileInfo;
-import com.bondhub.domain.transaction.*;
+import com.bondhub.domain.transaction.Transaction;
+import com.bondhub.domain.transaction.TransactionFinder;
+import com.bondhub.domain.transaction.TransactionMutator;
+import com.bondhub.domain.transaction.TransactionStatus;
 import com.bondhub.service.analysis.TransactionAnalyzer;
 import com.bondhub.service.analysis.TransactionParser;
-import com.bondhub.service.dto.TransactionDto;
-import com.bondhub.support.S3FileRepository;
+import com.bondhub.service.dto.TransactionGroupByBondNameDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.bondhub.service.UploadService.TRANSACTION_FILE_KEY_PREFIX;
-import static com.bondhub.service.UploadService.TRANSACTION_FILE_SAVE_NAME;
-import static com.bondhub.support.S3FileRepository.buildPath;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class TransactionService {
 
+    private final TransactionFinder transactionFinder;
+    private final TransactionMutator transactionMutator;
+
     private final TransactionParser transactionParser;
     private final TransactionAnalyzer transactionAnalyzer;
 
-    private final S3FileRepository fileRepository;
-    private final TransactionRepository transactionRepository;
-    private final TransactionAggregationRepository transactionAggregationRepository;
-
-    public List<TransactionDto> findUncategorized(String date) {
-        List<Transaction> transactions = transactionRepository.findByTransactionDateAndStatus(date, TransactionStatus.UNCATEGORIZED);
-        return transactions.stream()
-                .map(tx -> TransactionDto.builder()
-                        .id(tx.getId())
-                        .bondName(tx.getBondName())
-                        .maturityDate(tx.getMaturityDate())
-                        .build())
-                .toList();
-    }
+    private final AnalysisSummaryUpdater analysisSummaryUpdater;
 
     @Transactional
     public void reanalyzeAll(String date) {
         // 해당 일자의 거래내역을 모두 삭제
-        int deletedCount = transactionRepository.deleteAllByTransactionDateInBatch(date);
+        int deletedCount = transactionMutator.deleteAllByTransactionDateInBatch(date);
         log.info("[aggregateTransaction] deleted {} transactions", deletedCount);
 
-        FileInfo file = fileRepository.get(buildPath(TRANSACTION_FILE_KEY_PREFIX, date), TRANSACTION_FILE_SAVE_NAME);
+        FileInfo file = transactionFinder.getDailyTransactionFile(date);
         InputStream inputStream = file.getInputStream();
 
         // 집계
         List<Transaction> allTx = transactionParser.processTransactionFileInputStream(date, inputStream);
         allTx.forEach(transactionAnalyzer::analyze);
-        transactionRepository.saveAll(allTx);
+        transactionMutator.saveAll(allTx);
         log.info("[aggregateTransaction] created {} transactions", allTx.size());
 
-        Map<TransactionStatus, Long> statusCounts = allTx.stream()
-                .collect(Collectors.groupingBy(Transaction::getStatus, Collectors.counting()));
+        analysisSummaryUpdater.updateTransactionSummary(date, allTx);
+    }
 
-        // 집계 결과 생성
-        TransactionAggregation aggregation = TransactionAggregation.builder()
-                .transactionDate(date)
-                .totalTransactionCount(allTx.size())
-                .excludedTransactionCount(statusCounts.getOrDefault(TransactionStatus.NOT_USED, 0L))
-                .uncategorizedTransactionCount(statusCounts.getOrDefault(TransactionStatus.UNCATEGORIZED, 0L))
-                .fullyProcessedTransactionCount(statusCounts.getOrDefault(TransactionStatus.OK, 0L))
-                .build();
+    public List<TransactionGroupByBondNameDto> getTransactionsGroupByContent(String date, TransactionStatus status) {
+        List<Transaction> txs = transactionFinder.findDailyByStatus(date, status);
 
-        transactionAggregationRepository.save(aggregation);
+        Map<String, List<Transaction>> groupedByBondName = txs.stream().collect(Collectors.groupingBy(Transaction::getBondName));
+
+        List<TransactionGroupByBondNameDto> result = new ArrayList<>();
+        groupedByBondName.forEach((bondName, value) -> {
+            List<Long> ids = value.stream().map(Transaction::getId).toList();
+            result.add(new TransactionGroupByBondNameDto(bondName, ids));
+        });
+
+        result.sort((c1, c2) -> Integer.compare(c2.getIds().size(), c1.getIds().size()));
+        return result;
     }
 
 }

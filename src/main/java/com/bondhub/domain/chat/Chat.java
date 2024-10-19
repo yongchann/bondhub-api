@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -41,8 +40,6 @@ public class Chat {
 
     private String maturityDate; // joined string with delimiter ','
 
-    private int maturityDateCount;
-
     private String triggerKeyword;
 
     private String senderName;
@@ -51,14 +48,6 @@ public class Chat {
 
     public void initializeTradeType() {
         tradeType = TradeType.determineTypeFrom(content);
-    }
-
-    public void setMaturityDate(List<String> maturityDates) {
-        if (maturityDates.size() > 1) {
-            this.status = ChatStatus.NEEDS_SEPARATION;
-        }
-        this.maturityDateCount = maturityDates.size();
-        this.maturityDate = String.join(",", maturityDates);
     }
 
     public void classified(BondIssuer bondIssuer, String triggerKeyword) {
@@ -74,18 +63,18 @@ public class Chat {
         this.bondType = bondType;
     }
 
-    public void setStatus(ChatStatus status) {
-        this.status = status;
+    public void discard() {
+        this.status = ChatStatus.DISCARDED;
     }
 
-    public static Chat fromMultiBondChat(Chat multiBondChat, String singleBondContent, String maturityDate) {
+    public static Chat fromSeparation(MultiBondChat originalChat, ChatSeparationResult result) {
         return Chat.builder()
-                .chatDateTime(multiBondChat.getChatDateTime())
-                .senderName(multiBondChat.getSenderName())
-                .content(singleBondContent)
-                .senderAddress(multiBondChat.getSenderAddress())
+                .chatDateTime(originalChat.getChatDateTime())
+                .senderName(originalChat.getSenderName())
+                .senderAddress(originalChat.getSenderAddress())
+                .content(result.content())
+                .maturityDate(result.maturityDate())
                 .status(ChatStatus.CREATED)
-                .maturityDate(maturityDate)
                 .build();
     }
 

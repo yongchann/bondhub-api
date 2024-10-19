@@ -1,15 +1,14 @@
 package com.bondhub.domain.chat;
 
 import com.bondhub.domain.bond.BondType;
+import com.bondhub.service.dto.ChatGroupByContentDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -39,10 +38,24 @@ public class ChatFinder {
         return chatRepository.findByChatDateTimeBetweenAndStatus(start, end, status);
     }
 
-    public List<Chat> findDailyByStatus(String date, ChatStatus status, List<Long> chatIds) {
+    public List<ChatGroupByContentDto> findDailyByStatusGroupByContent(String date, ChatStatus status) {
+        List<Chat> chats = findDailyByStatus(date, status);
+        Map<String, List<Chat>> groupedByContent = chats.stream().collect(Collectors.groupingBy(Chat::getContent));
+
+        List<ChatGroupByContentDto> result = new ArrayList<>();
+        groupedByContent.forEach((content, value) -> {
+            List<Long> ids = value.stream().map(Chat::getId).toList();
+            result.add(new ChatGroupByContentDto(content, ids));
+        });
+
+        result.sort((c1, c2) -> Integer.compare(c2.getIds().size(), c1.getIds().size()));
+        return result;
+    }
+
+    public List<Chat> findDailyInIds(String date, List<Long> targetIds) {
         LocalDateTime start = LocalDateTime.of(LocalDate.parse(date), LocalTime.MIN);
         LocalDateTime end = LocalDateTime.of(LocalDate.parse(date), LocalTime.MAX);
-        return chatRepository.findByChatDateTimeBetweenAndStatusAndIdIn(start, end, status, chatIds);
+        return chatRepository.findByChatDateTimeBetweenAndIdIn(start, end, targetIds);
     }
 }
 

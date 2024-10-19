@@ -13,7 +13,7 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
     @Modifying
     int deleteByChatDateTimeBetween(LocalDateTime start, LocalDateTime end);
 
-    List<Chat> findByChatDateTimeBetweenAndStatusAndIdIn(LocalDateTime start, LocalDateTime end, ChatStatus status, List<Long> ids);
+    List<Chat> findByChatDateTimeBetweenAndIdIn(LocalDateTime start, LocalDateTime end, List<Long> ids);
 
     @Query("SELECT c " +
             "FROM Chat c " +

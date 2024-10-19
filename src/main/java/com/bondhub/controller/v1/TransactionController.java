@@ -1,7 +1,8 @@
 package com.bondhub.controller.v1;
 
+import com.bondhub.domain.transaction.TransactionStatus;
 import com.bondhub.service.TransactionService;
-import com.bondhub.service.dto.TransactionDto;
+import com.bondhub.service.dto.TransactionGroupByBondNameDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,9 +17,9 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @GetMapping("/api/v1/transaction/uncategorized")
-    public List<TransactionDto> findUncategorizedTransactions(@RequestParam("date") String date) {
-        return transactionService.findUncategorized(date);
+    @GetMapping("/api/v1/transaction/group")
+    public List<TransactionGroupByBondNameDto> groupedTransactions(@RequestParam("date") String date, @RequestParam("status") TransactionStatus status) {
+        return transactionService.getTransactionsGroupByContent(date, status);
     }
 
     @PostMapping("/api/v1/transaction/reanalyze-all")
