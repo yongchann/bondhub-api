@@ -42,5 +42,9 @@ public class MultiBondChat {
         this.status = ChatStatus.SEPARATED;
     }
 
+    public void failSeparation() {
+        this.status = ChatStatus.FAILED_SEPARATION;
+    }
+
 }
 

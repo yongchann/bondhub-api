@@ -6,5 +6,6 @@ public enum ChatStatus {
     UNCATEGORIZED,
     OK,
     SEPARATED,
+    FAILED_SEPARATION,
     DISCARDED
 }
