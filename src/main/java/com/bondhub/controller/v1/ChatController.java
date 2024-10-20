@@ -38,6 +38,11 @@ public class ChatController {
         return chatService.split(request.getChatDate(), request.getMultiBondChatId(), request.getSplitContents());
     }
 
+    @PostMapping("/api/v1/chat/multi-bond/auto-split")
+    public void autoSplitMultiBondChat(@RequestParam("date") String date, @RequestParam("limit") int limit) {
+        chatService.autoSplit(date, limit);
+    }
+
     @PatchMapping("/api/v1/chat/discard")
     public void discardChats(@RequestBody DiscardChatsRequest request) {
         chatService.discardChats(request.getChatDate(), request.getChatIds());

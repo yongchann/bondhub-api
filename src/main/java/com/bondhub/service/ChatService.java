@@ -98,4 +98,20 @@ public class ChatService {
         analysisSummaryUpdater.updateRetrialForUncategorized(chatDate, uncategorizedChats);
     }
 
+
+    @Transactional
+    public void autoSplit(String date, int limit) {
+        // 대상 조회
+        List<MultiBondChat> multiBondChats = multiBondChatFinder.findDailyByStatus(date, ChatStatus.NEEDS_SEPARATION, limit);
+
+        // 자동 분리
+        List<Chat> separatedChats = multiBondChatProcessor.autoSeparate(multiBondChats);
+
+        // 분리된 채팅 분석
+        separatedChats.forEach(chatAnalyzer::analyze);
+
+        chatAppender.appendInBatch(separatedChats);
+
+        analysisSummaryUpdater.updateSeparation(date, separatedChats);
+    }
 }
