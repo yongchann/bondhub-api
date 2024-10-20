@@ -46,7 +46,7 @@ public class ChatDto {
         return MultiBondChat.builder()
                 .content(dto.getContent())
                 .chatDateTime(dto.chatDateTime)
-                .status(ChatStatus.CREATED)
+                .status(ChatStatus.NEEDS_SEPARATION)
                 .senderName(dto.getSenderName())
                 .senderAddress(dto.getSenderAddress())
                 .maturityDateCount(maturityDates.size())
