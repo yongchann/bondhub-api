@@ -1,6 +1,7 @@
 package com.bondhub.controller.v1;
 
 import com.bondhub.controller.v1.request.LoginRequest;
+import com.bondhub.controller.v1.request.LogoutRequest;
 import com.bondhub.controller.v1.response.LoginResponse;
 import com.bondhub.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -23,5 +24,11 @@ public class LoginController {
     public LoginResponse login(@RequestBody LoginRequest request) {
         String token = userService.login(request.getUsername(), request.getPassword());
         return new LoginResponse(request.getUsername(), token);
+    }
+
+    @PostMapping("/api/v1/logout")
+    public void logout(@RequestBody LogoutRequest request) {
+        userService.logout(request.getUsername());
+
     }
 }
