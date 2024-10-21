@@ -32,8 +32,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundAggregationException.class)
     public ResponseEntity<ErrorResponse> handleNotFoundAggregationException(NotFoundAggregationException ex) {
         log.info("Aggregation not found: {}", ex.getMessage());
-        ErrorResponse error = new ErrorResponse(HttpStatus.OK.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.OK);
+        ErrorResponse error = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(IllegalFileNameException.class)
