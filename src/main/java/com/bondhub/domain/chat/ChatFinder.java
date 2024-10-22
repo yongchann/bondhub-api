@@ -17,6 +17,12 @@ public class ChatFinder {
 
     private final ChatRepository chatRepository;
 
+    public List<Chat> findDailyLatestSellChats(String date, BondType bondType) {
+        LocalDateTime start = LocalDateTime.of(LocalDate.parse(date), LocalTime.MIN);
+        LocalDateTime end = LocalDateTime.of(LocalDate.parse(date), LocalTime.MAX);
+        return chatRepository.findLatestAsksByBond(start, end, bondType);
+    }
+
     public List<Chat> findDailyCreditSellChats(String date, BondType bondType) {
         LocalDateTime start = LocalDateTime.of(LocalDate.parse(date), LocalTime.MIN);
         LocalDateTime end = LocalDateTime.of(LocalDate.parse(date), LocalTime.MAX);
