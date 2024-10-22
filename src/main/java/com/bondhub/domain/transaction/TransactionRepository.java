@@ -25,4 +25,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("transactionDate") String txDate,
             @Param("bondType") BondType bondType);
 
+
+    @Query("SELECT t FROM Transaction t " +
+            "JOIN FETCH t.bondIssuer bi " +
+            "WHERE bi.type = :bondType " +
+            "ORDER BY t.transactionDateTime DESC " +
+            "LIMIT 100")
+    List<Transaction> findLatest100ByBondType(BondType bondType);
 }

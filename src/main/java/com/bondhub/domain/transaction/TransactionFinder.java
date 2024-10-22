@@ -31,4 +31,8 @@ public class TransactionFinder {
         return fileRepository.get(buildPath(TRANSACTION_FILE_KEY_PREFIX, date), TRANSACTION_FILE_SAVE_NAME);
 
     }
+
+    public List<Transaction> findRecentByBondType(BondType bondType) {
+        return transactionRepository.findLatest100ByBondType(bondType);
+    }
 }

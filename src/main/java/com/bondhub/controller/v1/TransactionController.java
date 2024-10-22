@@ -1,7 +1,9 @@
 package com.bondhub.controller.v1;
 
+import com.bondhub.domain.bond.BondType;
 import com.bondhub.domain.transaction.TransactionStatus;
 import com.bondhub.service.TransactionService;
+import com.bondhub.service.dto.TransactionDetailDto;
 import com.bondhub.service.dto.TransactionGroupByBondNameDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,5 +27,10 @@ public class TransactionController {
     @PostMapping("/api/v1/transaction/reanalyze-all")
     public void aggregateDailyTransaction(@RequestParam("date") String date) {
         transactionService.reanalyzeAll(date);
+    }
+
+    @GetMapping("/api/v1/transaction/recent")
+    public List<TransactionDetailDto> findTransactionGroup(@RequestParam("bondType") BondType bondType) {
+        return transactionService.inquiryRecent(bondType);
     }
 }

@@ -1,8 +1,11 @@
 package com.bondhub.domain.transaction;
 
+import com.bondhub.domain.ask.Bond;
 import com.bondhub.domain.bond.BondIssuer;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -26,6 +29,7 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionStatus status = TransactionStatus.UNCATEGORIZED;
 
+    private LocalDateTime transactionDateTime;
     private String time;                    // 시간
 //    private String marketType;              // 시장구분
     private String bondName;                // 종목명
@@ -73,6 +77,10 @@ public class Transaction {
     public void failedClassified() {
         this.status = TransactionStatus.UNCATEGORIZED;
         this.triggerKeyword = "";
+    }
+
+    public Bond getBond() {
+        return new Bond(bondIssuer, maturityDate);
     }
 
 }

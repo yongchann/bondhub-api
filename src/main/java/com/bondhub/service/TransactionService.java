@@ -1,14 +1,14 @@
 package com.bondhub.service;
 
 import com.bondhub.domain.aggregation.AnalysisSummaryUpdater;
+import com.bondhub.domain.bond.BondType;
 import com.bondhub.domain.common.FileInfo;
-import com.bondhub.domain.transaction.Transaction;
-import com.bondhub.domain.transaction.TransactionFinder;
-import com.bondhub.domain.transaction.TransactionMutator;
-import com.bondhub.domain.transaction.TransactionStatus;
+import com.bondhub.domain.transaction.*;
 import com.bondhub.service.analysis.TransactionAnalyzer;
 import com.bondhub.service.analysis.TransactionParser;
+import com.bondhub.service.dto.TransactionDetailDto;
 import com.bondhub.service.dto.TransactionGroupByBondNameDto;
+import com.bondhub.service.dto.TransactionGroupDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +27,7 @@ public class TransactionService {
 
     private final TransactionFinder transactionFinder;
     private final TransactionMutator transactionMutator;
+    private final TransactionProcessor transactionProcessor;
 
     private final TransactionParser transactionParser;
     private final TransactionAnalyzer transactionAnalyzer;
@@ -66,4 +67,8 @@ public class TransactionService {
         return result;
     }
 
+    public List<TransactionDetailDto> inquiryRecent(BondType bondType) {
+        List<Transaction> transactions = transactionFinder.findRecentByBondType(bondType);
+        return transactions.stream().map(TransactionDetailDto::from).toList();
+    }
 }

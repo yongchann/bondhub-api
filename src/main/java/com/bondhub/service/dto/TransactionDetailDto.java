@@ -5,12 +5,22 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @AllArgsConstructor
 @Builder
 @Getter
 public class TransactionDetailDto {
 
-    private String time;
+    private Long id;
+
+    private String originalBondName;
+
+    private String grade;
+
+    private String maturityDate;
+
+    private LocalDateTime transactionDateTime;
 
     private String yield;
 
@@ -20,7 +30,11 @@ public class TransactionDetailDto {
 
     public static TransactionDetailDto from(Transaction tx) {
         return TransactionDetailDto.builder()
-                .time(tx.getTime())
+                .id(tx.getId())
+                .originalBondName(tx.getBondName())
+                .grade(tx.getCreditRating())
+                .maturityDate(tx.getMaturityDate())
+                .transactionDateTime(tx.getTransactionDateTime())
                 .yield(tx.getYield())
                 .tradingYield(tx.getTradingYield())
                 .spreadBp(tx.getSpreadBp())

@@ -10,6 +10,11 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Slf4j
@@ -17,6 +22,8 @@ import java.util.*;
 @Component
 public class TransactionParser {
 
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
 
@@ -46,8 +53,23 @@ public class TransactionParser {
     }
 
     private Transaction rowToTransaction(String date, Row row) {
+        String timeStr = getStringCellValue(row, 0);
+        LocalDateTime dateTime = null;
+
+        if (timeStr != null && !timeStr.trim().isEmpty()) {
+            try {
+                LocalDate localDate = LocalDate.parse(date, DATE_FORMATTER);
+                LocalTime localTime = LocalTime.parse(timeStr, TIME_FORMATTER);
+                dateTime = LocalDateTime.of(localDate, localTime);
+            } catch (DateTimeParseException e) {
+                // 로깅 또는 에러 처리
+                log.error("Failed to parse date/time: date={}, time={}", date, timeStr, e);
+            }
+        }
+
         return Transaction.builder()
                 .status(TransactionStatus.CREATED)
+                .transactionDateTime(dateTime)
                 .time(getStringCellValue(row, 0))
 //                        .marketType(getStringCellValue(row, 1))
                 .bondName(getStringCellValue(row, 2))
