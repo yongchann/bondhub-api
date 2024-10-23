@@ -24,6 +24,8 @@ public class ChatDto {
 
     private String content;
 
+    private String yield;
+
     private String senderAddress;
 
     public static Chat toChatEntity(ChatDto dto, List<String> maturityDates) {
@@ -34,6 +36,7 @@ public class ChatDto {
 
         return Chat.builder()
                 .content(dto.getContent())
+                .yield(dto.yield)
                 .chatDateTime(dto.chatDateTime)
                 .status(ChatStatus.CREATED)
                 .senderName(dto.getSenderName())

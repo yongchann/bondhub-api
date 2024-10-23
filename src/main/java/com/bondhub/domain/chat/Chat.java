@@ -25,6 +25,8 @@ public class Chat {
     @Column(name = "content", length = 2000)
     private String content;
 
+    private String yield;
+
     @Enumerated(EnumType.STRING)
     private TradeType tradeType;
 

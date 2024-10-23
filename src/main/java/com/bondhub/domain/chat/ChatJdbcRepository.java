@@ -39,6 +39,7 @@ public class ChatJdbcRepository {
         String sql = "INSERT INTO chat (" +
                 "chat_date_time, " +
                 "content, " +
+                "yield, " +
                 "trade_type, " +
                 "status, " +
                 "bond_type, " +
@@ -46,7 +47,7 @@ public class ChatJdbcRepository {
                 "maturity_date, " +
                 "trigger_keyword, " +
                 "sender_name, " +
-                "sender_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "sender_address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
@@ -54,26 +55,27 @@ public class ChatJdbcRepository {
                 Chat chat = bulkChats.get(i);
                 ps.setTimestamp(1, Timestamp.valueOf(chat.getChatDateTime()));
                 ps.setString(2, chat.getContent());
-                ps.setString(3, chat.getTradeType().name());
-                ps.setString(4, chat.getStatus().name());
+                ps.setString(3, chat.getYield());
+                ps.setString(4, chat.getTradeType().name());
+                ps.setString(5, chat.getStatus().name());
 
                 if (chat.getBondType() != null) {
-                    ps.setString(5, chat.getBondType().name());
+                    ps.setString(6, chat.getBondType().name());
                 } else {
-                    ps.setNull(5, Types.VARCHAR);
+                    ps.setNull(6, Types.VARCHAR);
                 }
 
                 if (chat.getBondIssuer() != null && chat.getBondIssuer().getId() != null) {
-                    ps.setLong(6, chat.getBondIssuer().getId());
+                    ps.setLong(7, chat.getBondIssuer().getId());
                 } else {
-                    ps.setNull(6, Types.BIGINT);
+                    ps.setNull(7, Types.BIGINT);
                 }
 
 
-                ps.setString(7, chat.getMaturityDate());
-                ps.setString(8, chat.getTriggerKeyword());
-                ps.setString(9, chat.getSenderName());
-                ps.setString(10, chat.getSenderAddress());
+                ps.setString(8, chat.getMaturityDate());
+                ps.setString(9, chat.getTriggerKeyword());
+                ps.setString(10, chat.getSenderName());
+                ps.setString(11, chat.getSenderAddress());
             }
 
             @Override
